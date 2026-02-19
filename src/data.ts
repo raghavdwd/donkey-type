@@ -1,0 +1,15 @@
+export const texts = [
+	 "Happiness is a choice you make and a skill you develop. The mind is just as malleable as the body. Train it to focus on the positive, to let go of negativity, and to find peace in the present moment, no matter the circumstances.",
+	 "The most important skill for getting rich is becoming a perpetual learner. You have to know how to learn anything you want to learn. The world changes fast, and the ability to adapt and acquire new knowledge is the ultimate superpower in any era.",
+	 "Desire is a contract you make with yourself to be unhappy until you get what you want. Instead, focus on appreciating what you already have. True wealth is not about having more; it's about wanting less and finding contentment in the present.",
+	 "The best way to achieve long-term success is to play long-term games with long-term people. Short-term thinking and quick wins may feel satisfying, but they rarely lead to meaningful outcomes. Patience and compounding are the keys to building something truly great.",
+	 "Reading is the foundation of independent thinking. It allows you to stand on the shoulders of giants and absorb the wisdom of the ages. Read widely, think deeply, and question everything. Knowledge is the ultimate form of leverage in a world driven by ideas.",
+	 "The most valuable asset you have is your time. Spend it wisely on things that matter: relationships, health, and personal growth. Avoid distractions and focus on what truly brings you joy and fulfillment. Time is the one resource you can never get back.",
+	 "Happiness is not about achieving external goals; it's about cultivating internal peace. External success can bring temporary satisfaction, but lasting happiness comes from within. Train your mind to detach from outcomes and embrace the journey, no matter where it leads.",
+	 "The best way to build wealth is to own equity in a business. Equity allows you to benefit from the compounding effects of growth over time. Focus on creating or investing in businesses that solve real problems and deliver value to society at scale.",
+	 "Desire is suffering. The more you want something, the more you suffer until you get it. Instead of chasing external validation, focus on internal peace. Cultivate gratitude for what you already have and detach from outcomes. True freedom comes from wanting less, not having more.",
+	 "Specific knowledge is found by pursuing your genuine curiosity and passion. It cannot be taught, but it can be learned through experience and dedication. When you align your work with your natural talents, you create value effortlessly and stand out in a crowded world.",
+	"The modern world is full of distractions, but focus is your superpower. Learn to say no to things that don't align with your goals and values. Spend your time and energy on what truly matters, and you'll achieve more with less effort. Clarity is the key to success",
+];
+export const getRandomText = () =>
+	texts[Math.floor(Math.random() * texts.length)];
