@@ -26,16 +26,60 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const ghostRun = useMemo(() => config.ghostMode ? getBestGhostRun() : null, [config.ghostMode, getBestGhostRun])
   const totalTypedChars = useRef(0)
 
-  // Switched to .mp3 format since some browsers (like Firefox on certain OS) struggle with decoding standard OGG files.
-  const playSound = useCallback((isError: boolean = false) => {
-    if (!config.soundEnabled) return
+  // Use base64 encoded audio strings to completely bypass network blocking, CORS, and decoding issues across all browsers
+  const typeSoundSrc = 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExDQAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExHAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExLAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExPAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExTAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExXAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExbAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExfAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExjAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+  
+  const errorSoundSrc = 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExDQAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExHAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExLAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExPAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExTAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExXAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExbAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExfAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExjAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+
+  const typeAudio = useMemo(() => new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAE='), [])
+  const errorAudio = useMemo(() => new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAE='), [])
+
+  // Web Audio API is much more reliable for overlapping rapid-fire sounds than HTMLAudioElement
+  const audioCtx = useRef<AudioContext | null>(null);
+
+  // Generate synthetic beeps to guarantee it works without needing external files
+  const playSyntheticSound = useCallback((isError: boolean = false) => {
+    if (!config.soundEnabled) return;
+    
     try {
-      const audio = new Audio(isError ? '/sounds/error.mp3' : '/sounds/type.mp3')
-      audio.volume = isError ? 0.1 : 0.2
-      const clone = audio.cloneNode() as HTMLAudioElement;
-      clone.play().catch(() => {})
-    } catch (e) {}
-  }, [config.soundEnabled])
+      if (!audioCtx.current) {
+        audioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      const ctx = audioCtx.current;
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      if (isError) {
+        // Error sound: low pitched double beep
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.1);
+      } else {
+        // Type sound: very short high pitched click resembling mechanical switch
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05);
+        
+        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.05);
+      }
+    } catch (e) {
+      console.error("Audio API error:", e);
+    }
+  }, [config.soundEnabled]);
 
   const words = text.split(' ')
   
@@ -123,7 +167,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     }
 
     if (e.key === 'Backspace') {
-      playSound()
+      playSyntheticSound()
       if (currLetterIndex > 0) {
         setCurrLetterIndex((prev) => prev - 1)
         totalTypedChars.current = Math.max(0, totalTypedChars.current - 1)
@@ -143,7 +187,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     }
 
     if (e.key === ' ') {
-      playSound()
+      playSyntheticSound()
       if (currLetterIndex === 0) {
         e.preventDefault()
         return
@@ -178,11 +222,11 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         }
 
         if (isTypo) {
-          playSound(true)
+          playSyntheticSound(true)
           setTypos((prev) => new Set(prev).add(`${currWordIndex},${currLetterIndex}`))
           incrStat('typos')
         } else {
-          playSound()
+          playSyntheticSound()
         }
         
         setCurrLetterIndex((prev) => prev + 1)
