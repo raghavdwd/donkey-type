@@ -26,14 +26,12 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const ghostRun = useMemo(() => config.ghostMode ? getBestGhostRun() : null, [config.ghostMode, getBestGhostRun])
   const totalTypedChars = useRef(0)
 
-  // Use local audio files to avoid CORS / OpaqueResponseBlocking errors
+  // Switched to .mp3 format since some browsers (like Firefox on certain OS) struggle with decoding standard OGG files.
   const playSound = useCallback((isError: boolean = false) => {
     if (!config.soundEnabled) return
     try {
-      const audio = new Audio(isError ? '/sounds/error.ogg' : '/sounds/type.ogg')
+      const audio = new Audio(isError ? '/sounds/error.mp3' : '/sounds/type.mp3')
       audio.volume = isError ? 0.1 : 0.2
-      // Extremely short sound clips can overlap and cause DOMException if not played cleanly, 
-      // cloneNode ensures we can fire multiple shots instantly without interrupting the previous one.
       const clone = audio.cloneNode() as HTMLAudioElement;
       clone.play().catch(() => {})
     } catch (e) {}
