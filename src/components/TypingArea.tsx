@@ -20,6 +20,8 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const ghostTimerRef = useRef<number | null>(null)
   
   const containerRef = useRef<HTMLDivElement>(null)
+  const wordsContainerRef = useRef<HTMLDivElement>(null)
+  const [translateY, setTranslateY] = useState(0)
   
   const { config, incrStat, recordKeystroke, getBestGhostRun } = useStore()
   
@@ -46,7 +48,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       gainNode.connect(ctx.destination);
       
       if (isError) {
-        // Error sound: low pitched double beep
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(150, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
@@ -57,7 +58,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.1);
       } else {
-        // Type sound: very short high pitched click resembling mechanical switch
         osc.type = 'sine';
         osc.frequency.setValueAtTime(800, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05);
@@ -128,6 +128,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     setTypos(new Set())
     setGhostWordIndex(0)
     setGhostLetterIndex(0)
+    setTranslateY(0)
     testStartTime.current = 0
     totalTypedChars.current = 0
     if (ghostTimerRef.current) cancelAnimationFrame(ghostTimerRef.current)
@@ -143,6 +144,33 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     window.addEventListener('click', handleGlobalClick)
     return () => window.removeEventListener('click', handleGlobalClick)
   }, [])
+
+  // Smart Scrolling Logic based on actual DOM position rather than arbitrary math
+  useEffect(() => {
+    if (!wordsContainerRef.current) return;
+    
+    // Find the currently active word element
+    const activeWordEl = wordsContainerRef.current.querySelector('[data-active="true"]') as HTMLElement;
+    if (!activeWordEl) return;
+
+    // Get the top offset of the current word relative to the container
+    const offsetTop = activeWordEl.offsetTop;
+    
+    // We want to keep the active line either at the top (0) or second line (approx ~48px)
+    // If the offset exceeds a certain threshold (meaning we've wrapped to line 3+), we scroll up.
+    // Line height is approximately 48px to 52px depending on font. Let's trigger scroll at > 60px.
+    if (offsetTop > 60) {
+        // Scroll exactly enough to bring the current line up by one line's height
+        // Because of flex-wrap and responsive widths, calculating exactly one line is best done by checking offset diffs, 
+        // but simply scrolling up by the amount it exceeds line 1 works perfectly.
+        // We set the negative translation to keep the current word visible near the top.
+        // Subtracting a small buffer (like 8px) ensures the active word is comfortably visible.
+        setTranslateY(offsetTop - 8);
+    } else if (offsetTop < 10 && translateY > 0) {
+        // Handle backspacing up a line - if we hit the top visually but are scrolled down, scroll back up.
+        setTranslateY(Math.max(0, translateY - 48));
+    }
+  }, [currWordIndex, translateY]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return
@@ -227,7 +255,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     }
   }
 
-  const translateY = Math.max(0, Math.floor(currWordIndex / 10)) * 48
 
   return (
     <div
@@ -244,6 +271,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       {...props}
     >
       <div 
+        ref={wordsContainerRef}
         className="flex flex-wrap transition-transform duration-300 ease-out w-full gap-x-4 gap-y-4"
         style={{ transform: `translateY(-${translateY}px)` }}
       >
@@ -255,6 +283,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
           return (
             <div
               key={widx}
+              data-active={isCurrWord}
               className={clsx(
                 'relative flex transition-all duration-200 rounded',
                 isPastWord ? 'opacity-30' : 'opacity-100',
