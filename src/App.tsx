@@ -26,7 +26,6 @@ function App() {
       if (bestRun && bestRun.textUsed) {
         setCurrentText(bestRun.textUsed);
       } else {
-        // Fallback if no ghost run exists yet for this config combo
         setCurrentText(getRandomText(config.mode === 'words' ? 25 : 80, config.language, config.difficulty));
       }
     } else {
@@ -56,8 +55,11 @@ function App() {
     if (timerRef.current) clearInterval(timerRef.current)
     setIsTyping(false)
     setIsFinished(true)
-    saveTestResult()
-  }, [saveTestResult])
+    
+    // Explicitly call the store method to save the result.
+    // Zustand's persist middleware will automatically sync the updated state array to localStorage.
+    useStore.getState().saveTestResult()
+  }, [])
 
   const handleStartTyping = useCallback(() => {
     if (!isTyping && !isFinished && !isHistoryOpen) {
@@ -66,7 +68,10 @@ function App() {
       timerRef.current = window.setInterval(() => {
         useStore.setState(state => {
           if (state.config.mode === 'time' && state.stats.secElapsed >= 30) {
-            finishTest()
+            // Need to wrap finishTest in a timeout because we are inside setState
+            setTimeout(() => {
+               finishTest()
+            }, 0)
             return state
           }
           return {
