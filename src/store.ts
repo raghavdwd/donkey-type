@@ -16,10 +16,13 @@ export interface TestResult {
   language: 'english' | 'hindi';
 }
 
+export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
+
 interface State {
 	config: {
 		mode: "time" | "words" | "zen";
         language: "english" | "hindi";
+        theme: ThemeName;
 		showRealtimeStats: boolean;
 		caseSensitive: boolean;
         soundEnabled: boolean;
@@ -39,6 +42,7 @@ interface State {
 interface Mutation {
 	changeMode: (mode: State["config"]["mode"]) => void;
     changeLanguage: (language: State["config"]["language"]) => void;
+    changeTheme: (theme: ThemeName) => void;
 	toggleRealtimeStats: (bool?: boolean) => void;
 	toggleCaseSensitive: (bool?: boolean) => void;
     toggleSound: (bool?: boolean) => void;
@@ -60,6 +64,7 @@ const initialState = {
 	config: {
 		mode: "time" as const,
         language: "english" as const,
+        theme: "default" as const,
 		showRealtimeStats: true,
 		caseSensitive: false,
         soundEnabled: true,
@@ -97,6 +102,15 @@ const useStore = create<State & Mutation & Compute>()(
                   language,
               },
           })),
+      changeTheme: (theme) => {
+          document.documentElement.setAttribute('data-theme', theme);
+          set((state) => ({
+              config: {
+                  ...state.config,
+                  theme,
+              },
+          }))
+      },
       toggleRealtimeStats: (bool) =>
           set((state) => ({
               config: {

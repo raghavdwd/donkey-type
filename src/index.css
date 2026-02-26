@@ -1,28 +1,83 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Inter:wght@100..900&display=swap');
 @import "tailwindcss";
 
+:root, [data-theme="default"] {
+  --brand: #eab308;
+  --brand-light: #fef08a;
+  --bg: #111111;
+  --bg-secondary: #1a1a1a;
+  --text: #e5e5e5;
+  --text-muted: #737373;
+  --error: #ef4444;
+  --success: #10b981;
+}
+
+[data-theme="nord"] {
+  --brand: #88c0d0;
+  --brand-light: #8fbcbb;
+  --bg: #2e3440;
+  --bg-secondary: #3b4252;
+  --text: #eceff4;
+  --text-muted: #4c566a;
+  --error: #bf616a;
+  --success: #a3be8c;
+}
+
+[data-theme="matcha"] {
+  --brand: #7ca66f;
+  --brand-light: #9dbd92;
+  --bg: #f4f0eb;
+  --bg-secondary: #e8e3dc;
+  --text: #4a4a4a;
+  --text-muted: #9e9e9e;
+  --error: #d97373;
+  --success: #7ca66f;
+}
+
+[data-theme="cyberpunk"] {
+  --brand: #fcee0a;
+  --brand-light: #00ff9f;
+  --bg: #000b18;
+  --bg-secondary: #001730;
+  --text: #00ff9f;
+  --text-muted: #005f73;
+  --error: #ff003c;
+  --success: #00ff9f;
+}
+
+[data-theme="midnight"] {
+  --brand: #a78bfa;
+  --brand-light: #c4b5fd;
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #475569;
+  --error: #f43f5e;
+  --success: #10b981;
+}
+
 @theme {
   --font-mono: 'JetBrains Mono', monospace;
   --font-sans: 'Inter', sans-serif;
   
-  --color-brand: #eab308;
-  --color-brand-light: #fef08a;
-  --color-bg: #111111;
-  --color-bg-secondary: #1a1a1a;
-  --color-text: #e5e5e5;
-  --color-text-muted: #737373;
-  --color-error: #ef4444;
-  --color-success: #10b981;
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-bg: var(--bg);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-error: var(--error);
+  --color-success: var(--success);
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  overflow: hidden; /* Prevent scrolling during typing */
+  overflow: hidden; 
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom scrollbar for aesthetic */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -34,10 +89,9 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #333; 
+  background: var(--color-text-muted); 
 }
 
-/* Caret blinking animation */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -47,7 +101,6 @@ body {
   animation: blink 1s step-end infinite;
 }
 
-/* Subtly hide mouse cursor when typing */
 .typing-active {
   cursor: none;
 }

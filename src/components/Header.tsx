@@ -1,9 +1,17 @@
-import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost, History, Languages } from 'lucide-react'
-import useStore from '../store'
+import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost, History, Languages, Palette } from 'lucide-react'
+import useStore, { ThemeName } from '../store'
 import clsx from 'clsx'
 
+const THEMES: ThemeName[] = ['default', 'nord', 'matcha', 'cyberpunk', 'midnight']
+
 export default function Header() {
-  const { config, changeMode, changeLanguage, toggleSound, toggleGhostMode, toggleHistory } = useStore()
+  const { config, changeMode, changeLanguage, changeTheme, toggleSound, toggleGhostMode, toggleHistory } = useStore()
+
+  const handleNextTheme = () => {
+    const currentIndex = THEMES.indexOf(config.theme)
+    const nextIndex = (currentIndex + 1) % THEMES.length
+    changeTheme(THEMES[nextIndex])
+  }
 
   return (
     <header className="w-full flex items-center justify-between py-12">
@@ -19,7 +27,7 @@ export default function Header() {
       </div>
 
       {/* Navigation / Modes */}
-      <nav className="flex items-center gap-2 bg-bg-secondary p-1.5 rounded-xl border border-neutral-800 shadow-xl font-mono text-sm">
+      <nav className="flex items-center gap-2 bg-bg-secondary p-1.5 rounded-xl border border-neutral-800/50 shadow-xl font-mono text-sm">
         <button 
           onClick={() => changeMode('time')}
           className={clsx(
@@ -42,11 +50,24 @@ export default function Header() {
 
       {/* Settings / Toggles */}
       <div className="flex items-center gap-4 text-text-muted">
+        
+        {/* Theme Toggle */}
+        <button 
+          onClick={handleNextTheme}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors font-mono text-sm hover:text-brand hover:bg-bg-secondary"
+          title={`Current Theme: ${config.theme} (Click to change)`}
+        >
+          <Palette className="w-4 h-4" />
+          <span className="hidden sm:inline capitalize">{config.theme}</span>
+        </button>
+
+        <div className="w-px h-6 bg-neutral-800/50" />
+
         <button 
           onClick={() => changeLanguage(config.language === 'english' ? 'hindi' : 'english')}
           className={clsx(
             "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors font-mono text-sm border border-transparent",
-            config.language === 'hindi' ? "text-green-400 bg-green-400/10 border-green-400/20" : "hover:text-brand hover:bg-bg-secondary"
+            config.language === 'hindi' ? "text-success bg-success/10 border-success/20" : "hover:text-brand hover:bg-bg-secondary"
           )}
           title="Toggle Language"
         >
@@ -54,7 +75,7 @@ export default function Header() {
           <span className="hidden sm:inline">{config.language === 'english' ? 'en' : 'hi'}</span>
         </button>
 
-        <div className="w-px h-6 bg-neutral-800" />
+        <div className="w-px h-6 bg-neutral-800/50" />
 
         <button 
           onClick={() => toggleHistory()}

@@ -15,6 +15,11 @@ function App() {
   
   const timerRef = useRef<number | null>(null)
 
+  // Initialize theme on mount
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', config.theme);
+  }, [config.theme])
+
   const initGame = useCallback(() => {
     setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80, config.language))
     reset()
