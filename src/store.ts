@@ -13,11 +13,13 @@ export interface TestResult {
   mode: string;
   date: string;
   keystrokes: KeystrokeTiming[];
+  language: 'english' | 'hindi';
 }
 
 interface State {
 	config: {
 		mode: "time" | "words" | "zen";
+        language: "english" | "hindi";
 		showRealtimeStats: boolean;
 		caseSensitive: boolean;
         soundEnabled: boolean;
@@ -36,6 +38,7 @@ interface State {
 
 interface Mutation {
 	changeMode: (mode: State["config"]["mode"]) => void;
+    changeLanguage: (language: State["config"]["language"]) => void;
 	toggleRealtimeStats: (bool?: boolean) => void;
 	toggleCaseSensitive: (bool?: boolean) => void;
     toggleSound: (bool?: boolean) => void;
@@ -56,6 +59,7 @@ interface Compute {
 const initialState = {
 	config: {
 		mode: "time" as const,
+        language: "english" as const,
 		showRealtimeStats: true,
 		caseSensitive: false,
         soundEnabled: true,
@@ -84,6 +88,13 @@ const useStore = create<State & Mutation & Compute>()(
                   mode,
                   showRealtimeStats:
                       mode === "zen" ? false : state.config.showRealtimeStats,
+              },
+          })),
+      changeLanguage: (language) =>
+          set((state) => ({
+              config: {
+                  ...state.config,
+                  language,
               },
           })),
       toggleRealtimeStats: (bool) =>
@@ -145,12 +156,13 @@ const useStore = create<State & Mutation & Compute>()(
               wpm: state.calcWPM(),
               accuracy: state.calcAccuracy(),
               mode: state.config.mode,
+              language: state.config.language,
               date: new Date().toISOString(),
               keystrokes: state.currentKeystrokes
           };
           
           set((state) => ({
-              history: [newResult, ...state.history].slice(0, 100) // Keep last 100
+              history: [newResult, ...state.history].slice(0, 100) 
           }));
       },
 
@@ -166,7 +178,7 @@ const useStore = create<State & Mutation & Compute>()(
 
       getBestGhostRun: () => {
           const state = get();
-          const validRuns = state.history.filter(h => h.mode === state.config.mode && h.keystrokes?.length > 0);
+          const validRuns = state.history.filter(h => h.mode === state.config.mode && h.language === state.config.language && h.keystrokes?.length > 0);
           if (validRuns.length === 0) return null;
           return validRuns.reduce((best, curr) => curr.wpm > best.wpm ? curr : best, validRuns[0]);
       }

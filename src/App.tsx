@@ -16,12 +16,12 @@ function App() {
   const timerRef = useRef<number | null>(null)
 
   const initGame = useCallback(() => {
-    setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80))
+    setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80, config.language))
     reset()
     setIsTyping(false)
     setIsFinished(false)
     if (timerRef.current) clearInterval(timerRef.current)
-  }, [config.mode, reset])
+  }, [config.mode, config.language, reset])
 
   useEffect(() => {
     initGame()
