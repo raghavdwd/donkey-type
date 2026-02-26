@@ -1,5 +1,6 @@
 import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost, History, Languages, Palette } from 'lucide-react'
-import useStore, { ThemeName } from '../store'
+import useStore from '../store'
+import type { ThemeName } from '../store'
 import clsx from 'clsx'
 
 const THEMES: ThemeName[] = ['default', 'nord', 'matcha', 'cyberpunk', 'midnight']

@@ -38,9 +38,20 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     } catch (e) {}
   }, [config.soundEnabled])
 
+  // Split text into words. For Hindi, we need to treat the word as a whole unit
+  // when typing, because Devanagari characters combine to form ligatures.
   const words = text.split(' ')
+  
+  // Helper to split a word into an array of its composing characters/graphemes safely.
+  // Standard split('') breaks Devanagari ligatures (matras, halants) into separate non-rendered pieces.
+  // Using Intl.Segmenter correctly splits complex script graphemes into visual units.
+  const segmenter = useMemo(() => new Intl.Segmenter(config.language === 'hindi' ? 'hi' : 'en', { granularity: 'grapheme' }), [config.language])
+  
+  const wordGraphemes = useMemo(() => {
+    return words.map(word => Array.from(segmenter.segment(word)).map(s => s.segment))
+  }, [words, segmenter])
 
-  // Ghost Runner Logic
+
   useEffect(() => {
     if (testStartTime.current > 0 && ghostRun && ghostRun.keystrokes) {
       let currentIdx = 0
@@ -50,18 +61,17 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         
         while (currentIdx < ghostRun.keystrokes.length && ghostRun.keystrokes[currentIdx].timestamp <= now) {
           const charPos = ghostRun.keystrokes[currentIdx].charIndex
-          // Convert global charPos back to word/letter indices for rendering
           let count = 0
           let gWord = 0
           let gLet = 0
           
-          for (let i = 0; i < words.length; i++) {
-            if (count + words[i].length + 1 > charPos) {
+          for (let i = 0; i < wordGraphemes.length; i++) {
+            if (count + wordGraphemes[i].length + 1 > charPos) {
               gWord = i
               gLet = charPos - count
               break
             }
-            count += words[i].length + 1
+            count += wordGraphemes[i].length + 1
           }
           
           setGhostWordIndex(gWord)
@@ -80,9 +90,8 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         if (ghostTimerRef.current) cancelAnimationFrame(ghostTimerRef.current)
       }
     }
-  }, [testStartTime.current, ghostRun, words])
+  }, [testStartTime.current, ghostRun, wordGraphemes])
 
-  // Reset local state when text changes (new test)
   useEffect(() => {
     setCurrWordIndex(0)
     setCurrLetterIndex(0)
@@ -108,7 +117,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return
 
-    const currWord = words[currWordIndex] || ''
+    const currWordChars = wordGraphemes[currWordIndex] || []
     
     if (e.key.length === 1 && currWordIndex === 0 && currLetterIndex === 0) {
       onStart()
@@ -131,7 +140,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         })
       } else if (currWordIndex > 0) {
         setCurrWordIndex(prev => prev - 1)
-        const prevWordActual = words[currWordIndex - 1]
+        const prevWordActual = wordGraphemes[currWordIndex - 1]
         setCurrLetterIndex(prevWordActual.length)
         totalTypedChars.current = Math.max(0, totalTypedChars.current - 1)
       }
@@ -146,7 +155,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         return
       }
       
-      if (currWordIndex === words.length - 1) {
+      if (currWordIndex === wordGraphemes.length - 1) {
         onFinish()
         return
       }
@@ -159,15 +168,19 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       return
     }
 
+    // Capture standard character input
     if (e.key.length === 1) {
-      if (currLetterIndex < currWord.length + 5) {
+      if (currLetterIndex < currWordChars.length + 5) {
         incrStat('typedCharCount')
         totalTypedChars.current += 1
         
         let isTypo = false
-        if (currLetterIndex < currWord.length) {
-          const expectedLetter = currWord[currLetterIndex]
-          if (expectedLetter !== e.key) {
+        if (currLetterIndex < currWordChars.length) {
+          const expectedChar = currWordChars[currLetterIndex]
+          // In Hindi, people might type the full grapheme (if using phonetic) or parts of it
+          // This strict equality check might need relaxing if using certain IME keyboards,
+          // but for basic mapping it works.
+          if (expectedChar !== e.key) {
             isTypo = true
           }
         } else {
@@ -198,34 +211,37 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       onBlur={() => setIsFocused(false)}
       role="textbox"
       tabIndex={0}
-      className="flex flex-wrap focus:outline-none relative font-mono text-3xl leading-relaxed outline-none w-full max-h-[150px] overflow-hidden"
+      className={clsx(
+        "flex flex-wrap focus:outline-none relative font-mono text-3xl leading-relaxed outline-none w-full max-h-[150px] overflow-hidden",
+        config.language === 'hindi' ? "font-sans" : "font-mono" // Hindi looks better in sans-serif to render complex ligatures correctly
+      )}
       {...props}
     >
       <div 
         className="flex flex-wrap transition-transform duration-300 ease-out w-full gap-x-4 gap-y-4"
         style={{ transform: `translateY(-${translateY}px)` }}
       >
-        {words.map((word, widx) => {
+        {wordGraphemes.map((wordChars, widx) => {
           const isCurrWord = widx === currWordIndex
           const isPastWord = widx < currWordIndex
           const isGhostWord = config.ghostMode && widx === ghostWordIndex
 
           return (
             <div
-              key={word + widx}
+              key={widx}
               className={clsx(
                 'relative flex transition-all duration-200 rounded',
                 isPastWord ? 'opacity-30' : 'opacity-100',
                 isCurrWord && 'text-text'
               )}
             >
-              {word.split('').map((letter, lidx) => {
+              {wordChars.map((char, lidx) => {
                 const isTypo = typos.has(`${widx},${lidx}`)
                 const isTyped = isPastWord || (isCurrWord && lidx < currLetterIndex)
                 
                 return (
                   <span
-                    key={letter + lidx}
+                    key={lidx}
                     className={clsx(
                       'transition-colors duration-100 relative',
                       !isTyped && 'text-text-muted', 
@@ -233,7 +249,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
                       isTypo && 'text-error border-b-2 border-error', 
                     )}
                   >
-                    {letter}
+                    {char}
                     
                     {/* User Caret */}
                     {isFocused && isCurrWord && lidx === currLetterIndex && (
@@ -248,17 +264,17 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
                 )
               })}
 
-              {isCurrWord && currLetterIndex >= word.length && Array.from({ length: currLetterIndex - word.length }).map((_, extraIdx) => (
+              {isCurrWord && currLetterIndex >= wordChars.length && Array.from({ length: currLetterIndex - wordChars.length }).map((_, extraIdx) => (
                 <span key={`extra-${extraIdx}`} className="text-error border-b-2 border-error opacity-70">
                   *
                 </span>
               ))}
 
               {/* End of word carets */}
-              {isFocused && isCurrWord && currLetterIndex >= word.length && (
+              {isFocused && isCurrWord && currLetterIndex >= wordChars.length && (
                 <div className="absolute -right-[2px] top-1 bottom-1 w-[3px] bg-brand animate-blink rounded-full shadow-[0_0_8px_rgba(234,179,8,0.5)] z-30" />
               )}
-              {config.ghostMode && isGhostWord && ghostLetterIndex >= word.length && (
+              {config.ghostMode && isGhostWord && ghostLetterIndex >= wordChars.length && (
                 <div className="absolute -right-[2px] top-1 bottom-1 w-[3px] bg-blue-500/50 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] z-20" />
               )}
             </div>
