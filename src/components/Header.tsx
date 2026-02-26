@@ -5,8 +5,6 @@ import clsx from 'clsx'
 
 const THEMES: ThemeName[] = ['default', 'nord', 'matcha', 'cyberpunk', 'midnight']
 const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
-const TIME_OPTIONS = [15, 30, 60, 120]
-const WORDS_OPTIONS = [10, 25, 50, 100]
 
 export default function Header() {
   const { 
@@ -16,7 +14,9 @@ export default function Header() {
       changeTheme, 
       changeDifficulty, 
       setTimeAmount,
+      setTimeUnit,
       setWordsAmount,
+      setWordUnit,
       toggleSound, 
       toggleGhostMode, 
       toggleHistory 
@@ -55,7 +55,7 @@ export default function Header() {
             <button 
               onClick={() => changeMode('time')}
               className={clsx(
-                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
+                "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200",
                 config.mode === 'time' ? "bg-bg text-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg/50"
               )}
             >
@@ -64,7 +64,7 @@ export default function Header() {
             <button 
               onClick={() => changeMode('words')}
               className={clsx(
-                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
+                "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200",
                 config.mode === 'words' ? "bg-bg text-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg/50"
               )}
             >
@@ -74,32 +74,55 @@ export default function Header() {
 
         <div className="w-px h-6 bg-neutral-800/50" />
 
-        {/* Options (Time amounts or Word amounts depending on mode) */}
-        <div className="flex items-center gap-1 pr-2">
-            {config.mode === 'time' && TIME_OPTIONS.map(time => (
-                <button
-                    key={time}
-                    onClick={() => setTimeAmount(time)}
-                    className={clsx(
-                        "px-2 py-1 rounded transition-colors",
-                        config.timeAmount === time ? "text-brand" : "text-text-muted hover:text-text"
-                    )}
-                >
-                    {time}
-                </button>
-            ))}
-            {config.mode === 'words' && WORDS_OPTIONS.map(words => (
-                <button
-                    key={words}
-                    onClick={() => setWordsAmount(words)}
-                    className={clsx(
-                        "px-2 py-1 rounded transition-colors",
-                        config.wordsAmount === words ? "text-brand" : "text-text-muted hover:text-text"
-                    )}
-                >
-                    {words}
-                </button>
-            ))}
+        {/* Inputs based on Mode */}
+        <div className="flex items-center gap-2 pr-2">
+            {config.mode === 'time' && (
+                <>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={config.timeAmount}
+                    onChange={(e) => setTimeAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-14 bg-bg text-text px-2 py-1 rounded border border-neutral-700 outline-none focus:border-brand transition-colors text-center"
+                  />
+                  <div className="flex bg-bg rounded overflow-hidden border border-neutral-700">
+                    <button 
+                      onClick={() => setTimeUnit('s')} 
+                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 's' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
+                    >s</button>
+                    <button 
+                      onClick={() => setTimeUnit('m')} 
+                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 'm' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
+                    >m</button>
+                    <button 
+                      onClick={() => setTimeUnit('h')} 
+                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 'h' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
+                    >h</button>
+                  </div>
+                </>
+            )}
+            
+            {config.mode === 'words' && (
+                <>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={config.wordsAmount}
+                    onChange={(e) => setWordsAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-16 bg-bg text-text px-2 py-1 rounded border border-neutral-700 outline-none focus:border-brand transition-colors text-center"
+                  />
+                  <div className="flex bg-bg rounded overflow-hidden border border-neutral-700">
+                    <button 
+                      onClick={() => setWordUnit('words')} 
+                      className={clsx("px-2 py-1 transition-colors", config.wordUnit === 'words' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
+                    >words</button>
+                    <button 
+                      onClick={() => setWordUnit('chars')} 
+                      className={clsx("px-2 py-1 transition-colors", config.wordUnit === 'chars' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
+                    >chars</button>
+                  </div>
+                </>
+            )}
         </div>
 
       </div>

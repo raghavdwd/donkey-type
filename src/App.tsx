@@ -20,8 +20,15 @@ function App() {
 
   const initGame = useCallback(() => {
     // Determine how many words to generate based on mode and options
-    // For time mode, generate plenty of words to avoid running out
-    const generateWordCount = config.mode === 'words' ? config.wordsAmount : 200;
+    let generateWordCount = 200; // Default buffer for time mode
+    if (config.mode === 'words') {
+        if (config.wordUnit === 'words') {
+            generateWordCount = config.wordsAmount;
+        } else {
+            // If they chose 'chars', we guess how many words that is (~5 chars per word)
+            generateWordCount = Math.ceil(config.wordsAmount / 5) + 5; 
+        }
+    }
 
     if (config.ghostMode) {
       const bestRun = getBestGhostRun();
@@ -38,14 +45,14 @@ function App() {
     setIsTyping(false)
     setIsFinished(false)
     if (timerRef.current) clearInterval(timerRef.current)
-  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.wordsAmount, reset, setCurrentText, getBestGhostRun])
+  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.timeUnit, config.wordsAmount, config.wordUnit, reset, setCurrentText, getBestGhostRun])
 
   useEffect(() => {
     initGame()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.wordsAmount]) 
+  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.timeUnit, config.wordsAmount, config.wordUnit]) 
 
   useEffect(() => {
     initGame()
@@ -64,12 +71,17 @@ function App() {
       
       timerRef.current = window.setInterval(() => {
         useStore.setState(state => {
-          // Check if time mode reached its target limit
-          if (state.config.mode === 'time' && state.stats.secElapsed >= state.config.timeAmount) {
-            setTimeout(() => {
-               finishTest()
-            }, 0)
-            return state
+          // Time mode logic
+          if (state.config.mode === 'time') {
+              const multiplier = state.config.timeUnit === 'h' ? 3600 : state.config.timeUnit === 'm' ? 60 : 1;
+              const targetSeconds = state.config.timeAmount * multiplier;
+              
+              if (state.stats.secElapsed >= targetSeconds) {
+                setTimeout(() => {
+                   finishTest()
+                }, 0)
+                return state
+              }
           }
           return {
             stats: { ...state.stats, secElapsed: state.stats.secElapsed + 1 }
@@ -78,6 +90,18 @@ function App() {
       }, 1000)
     }
   }, [isTyping, isFinished, finishTest, isHistoryOpen])
+
+  // Subscribes to typing progress to end 'words' or 'chars' mode early if needed
+  useEffect(() => {
+      if (isTyping && config.mode === 'words') {
+          if (config.wordUnit === 'chars' && stats.typedCharCount >= config.wordsAmount) {
+              finishTest()
+          } else if (config.wordUnit === 'words' && stats.wordCount >= config.wordsAmount) {
+              finishTest()
+          }
+      }
+  }, [stats.typedCharCount, stats.wordCount, isTyping, config.mode, config.wordUnit, config.wordsAmount, finishTest])
+
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,6 +113,19 @@ function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [initGame])
+
+  const getTimeLeftDisplay = () => {
+      const multiplier = config.timeUnit === 'h' ? 3600 : config.timeUnit === 'm' ? 60 : 1;
+      const targetSeconds = config.timeAmount * multiplier;
+      const left = Math.max(0, targetSeconds - stats.secElapsed);
+      
+      if (config.timeUnit === 's') return `${left}s`;
+      const m = Math.floor(left / 60);
+      const s = left % 60;
+      if (config.timeUnit === 'm') return `${m}:${s.toString().padStart(2, '0')}`;
+      const h = Math.floor(left / 3600);
+      return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
 
   return (
     <main className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}>
@@ -106,7 +143,7 @@ function App() {
             <div className={`absolute -top-16 left-8 font-mono text-2xl text-brand flex gap-6 transition-all duration-300 ${config.showRealtimeStats && isTyping ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <span>{useStore.getState().calcWPM()} wpm</span>
               {config.mode === 'time' && (
-                <span>{Math.max(0, config.timeAmount - stats.secElapsed)}s</span>
+                <span>{getTimeLeftDisplay()}</span>
               )}
             </div>
             

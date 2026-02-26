@@ -17,7 +17,9 @@ export interface TestResult {
   difficulty: 'easy' | 'medium' | 'hard';
   textUsed: string; 
   timeAmount?: number;
+  timeUnit?: 's' | 'm' | 'h';
   wordsAmount?: number;
+  wordUnit?: 'words' | 'chars';
 }
 
 export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
@@ -29,7 +31,9 @@ interface State {
         difficulty: "easy" | "medium" | "hard";
         theme: ThemeName;
         timeAmount: number;
+        timeUnit: "s" | "m" | "h";
         wordsAmount: number;
+        wordUnit: "words" | "chars";
 		showRealtimeStats: boolean;
 		caseSensitive: boolean;
         soundEnabled: boolean;
@@ -53,7 +57,9 @@ interface Mutation {
     changeDifficulty: (difficulty: State["config"]["difficulty"]) => void;
     changeTheme: (theme: ThemeName) => void;
     setTimeAmount: (amount: number) => void;
+    setTimeUnit: (unit: State["config"]["timeUnit"]) => void;
     setWordsAmount: (amount: number) => void;
+    setWordUnit: (unit: State["config"]["wordUnit"]) => void;
 	toggleRealtimeStats: (bool?: boolean) => void;
 	toggleCaseSensitive: (bool?: boolean) => void;
     toggleSound: (bool?: boolean) => void;
@@ -79,7 +85,9 @@ const initialState = {
         difficulty: "medium" as const,
         theme: "default" as const,
         timeAmount: 30,
+        timeUnit: "s" as const,
         wordsAmount: 25,
+        wordUnit: "words" as const,
 		showRealtimeStats: true,
 		caseSensitive: false,
         soundEnabled: true,
@@ -124,9 +132,17 @@ const useStore = create<State & Mutation & Compute>()(
           set((state) => ({
               config: { ...state.config, timeAmount: amount },
           })),
+      setTimeUnit: (unit) =>
+          set((state) => ({
+              config: { ...state.config, timeUnit: unit },
+          })),
       setWordsAmount: (amount) =>
           set((state) => ({
               config: { ...state.config, wordsAmount: amount },
+          })),
+      setWordUnit: (unit) =>
+          set((state) => ({
+              config: { ...state.config, wordUnit: unit },
           })),
       toggleRealtimeStats: (bool) =>
           set((state) => ({
@@ -176,7 +192,9 @@ const useStore = create<State & Mutation & Compute>()(
               language: state.config.language,
               difficulty: state.config.difficulty,
               timeAmount: state.config.timeAmount,
+              timeUnit: state.config.timeUnit,
               wordsAmount: state.config.wordsAmount,
+              wordUnit: state.config.wordUnit,
               date: new Date().toISOString(),
               keystrokes: state.currentKeystrokes,
               textUsed: state.currentText
@@ -208,14 +226,19 @@ const useStore = create<State & Mutation & Compute>()(
       getBestGhostRun: () => {
           const state = get();
           const targetTime = state.config.timeAmount;
+          const targetTimeU = state.config.timeUnit;
           const targetWords = state.config.wordsAmount;
+          const targetWordsU = state.config.wordUnit;
           
           const validRuns = state.history.filter(h => 
               h.mode === state.config.mode && 
               h.language === state.config.language && 
               h.difficulty === state.config.difficulty &&
-              // Enforce same target goal for fair ghost race
-              (state.config.mode === 'time' ? (h.timeAmount || 30) === targetTime : (h.wordsAmount || 25) === targetWords) &&
+              // Enforce same target goals and units for a fair ghost race
+              (state.config.mode === 'time' 
+                ? ((h.timeAmount || 30) === targetTime && (h.timeUnit || 's') === targetTimeU) 
+                : ((h.wordsAmount || 25) === targetWords && (h.wordUnit || 'words') === targetWordsU)
+              ) &&
               h.keystrokes?.length > 0 &&
               h.textUsed?.length > 0
           );
