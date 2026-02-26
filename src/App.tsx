@@ -16,7 +16,8 @@ function App() {
 
   // Initialize game
   const initGame = useCallback(() => {
-    setPracticeText(getRandomText(config.mode === 'words' ? 25 : 50))
+    // Generate enough text based on mode
+    setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80))
     reset()
     setIsTyping(false)
     setIsFinished(false)
@@ -75,7 +76,7 @@ function App() {
     <main className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}>
       
       {/* Dynamic wrapper to fade out distracting elements while typing */}
-      <div className={`w-full max-w-5xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
+      <div className={`w-full max-w-5xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-10 hover:opacity-100' : 'opacity-100'}`}>
         <Header />
       </div>
 
@@ -87,14 +88,12 @@ function App() {
         ) : (
           <>
             {/* Realtime mini-stats */}
-            {config.showRealtimeStats && isTyping && (
-              <div className="absolute -top-16 left-8 font-mono text-xl text-brand flex gap-6 animate-in fade-in">
-                <span>{useStore.getState().calcWPM()} wpm</span>
-                {config.mode === 'time' && (
-                  <span>{Math.max(0, 30 - stats.secElapsed)}s</span>
-                )}
-              </div>
-            )}
+            <div className={`absolute -top-16 left-8 font-mono text-2xl text-brand flex gap-6 transition-all duration-300 ${config.showRealtimeStats && isTyping ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <span>{useStore.getState().calcWPM()} wpm</span>
+              {config.mode === 'time' && (
+                <span>{Math.max(0, 30 - stats.secElapsed)}s</span>
+              )}
+            </div>
             
             <TypingArea 
               text={practiceText} 
@@ -107,7 +106,7 @@ function App() {
 
       {/* Footer shortcut hints */}
       <div className={`absolute bottom-8 text-text-muted text-sm font-mono transition-opacity duration-500 ${isTyping && !isFinished ? 'opacity-0' : 'opacity-100'}`}>
-        <span className="bg-bg-secondary px-2 py-1 rounded border border-neutral-800">tab</span> + <span className="bg-bg-secondary px-2 py-1 rounded border border-neutral-800">enter</span> to restart
+        <span className="bg-bg-secondary px-2 py-1 rounded border border-neutral-800 text-brand">tab</span> to restart
       </div>
       
     </main>

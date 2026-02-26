@@ -1,9 +1,9 @@
-import { Keyboard, Timer, AlignLeft, Volume2, VolumeX } from 'lucide-react'
+import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost } from 'lucide-react'
 import useStore from '../store'
 import clsx from 'clsx'
 
 export default function Header() {
-  const { config, changeMode, toggleSound } = useStore()
+  const { config, changeMode, toggleSound, toggleGhostMode } = useStore()
 
   return (
     <header className="w-full flex items-center justify-between py-12">
@@ -40,8 +40,19 @@ export default function Header() {
         </button>
       </nav>
 
-      {/* Settings / Sound */}
+      {/* Settings / Toggles */}
       <div className="flex items-center gap-4 text-text-muted">
+        <button 
+          onClick={() => toggleGhostMode()}
+          className={clsx(
+            "p-2 rounded-lg transition-colors",
+            config.ghostMode ? "text-blue-400 bg-blue-400/10" : "hover:text-brand hover:bg-bg-secondary"
+          )}
+          title="Toggle Ghost Mode (race your best time)"
+        >
+          <Ghost className="w-5 h-5" />
+        </button>
+        
         <button 
           onClick={() => toggleSound()}
           className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors"
