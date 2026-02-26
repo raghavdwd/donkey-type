@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# ⌨️ DonkeyType
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A gorgeous, highly-customizable, minimalist typing test application built with React, Zustand, and TailwindCSS. It focuses on fluid UX, performance, and aesthetic design.
 
-Currently, two official plugins are available:
+![DonkeyType Demo](./public/og-image.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **End-to-End Typing Flow**: Clean, distraction-free UI that fades out non-essential elements when you start typing.
+- **Dynamic Color Themes**: Instantly switch between 5 gorgeous palettes (Default, Nord, Matcha, Cyberpunk, Midnight).
+- **Ghost Mode (Race yourself)**: Toggle Ghost mode to visually race against a blue caret representing your previous best WPM for that exact text!
+- **Multilingual Support**: Supports both standard English and Devanagari Hindi typing with correct complex-grapheme ligature rendering.
+- **Multiple Difficulties**: Choose between Easy, Medium, and Hard word pools.
+- **Synthetic Audio Engine**: Satisfying, ultra-low latency mechanical keyboard sounds synthesized directly in the browser via the Web Audio API (zero network blocking/CORS issues).
+- **Persistent Stats**: Automatically saves your run history to `localStorage`.
+- **Interactive History Dashboard**: View your WPM and Accuracy progression via a beautiful Recharts line graph.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Quick Start
 
-## Expanding the ESLint configuration
+Ensure you have [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) installed.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/donkey-type.git
+cd donkey-type
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Install dependencies
+pnpm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start the development server
+pnpm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app will be available at `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Framework**: [React 19](https://react.dev/) with [Vite](https://vitejs.dev/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand) (with Persist middleware)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Charts**: [Recharts](https://recharts.org/)
+
+## ⌨️ Shortcuts
+
+- `Tab` - Instantly restart the current test and generate new words.
+- `Click anywhere` - The app aggressively refocuses the typing area if you accidentally click away.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/donkey-type/issues).
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).

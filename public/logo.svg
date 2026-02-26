@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#111111" rx="64"/>
+  <path d="M184 72H72c-13.25 0-24 10.75-24 24v64c0 13.25 10.75 24 24 24h112c13.25 0 24-10.75 24-24V96c0-13.25-10.75-24-24-24zm8 88c0 4.41-3.59 8-8 8H72c-4.41 0-8-3.59-8-8V96c0-4.41 3.59-8 8-8h112c4.41 0 8 3.59 8 8v64z" fill="#eab308"/>
+  <rect x="76" y="104" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="100" y="104" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="124" y="104" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="148" y="104" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="172" y="104" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="76" y="128" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="100" y="128" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="124" y="128" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="148" y="128" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="172" y="128" width="16" height="16" fill="#eab308" rx="4"/>
+  <rect x="100" y="152" width="64" height="16" fill="#eab308" rx="8"/>
+</svg>
