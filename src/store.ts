@@ -15,7 +15,7 @@ export interface TestResult {
   keystrokes: KeystrokeTiming[];
   language: 'english' | 'hindi';
   difficulty: 'easy' | 'medium' | 'hard';
-  textUsed: string; // Saved so ghost mode can replay the exact same text
+  textUsed: string; 
 }
 
 export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
@@ -170,14 +170,25 @@ const useStore = create<State & Mutation & Compute>()(
       },
 
       calcWPM: (
-          sec = get().stats.secElapsed || 1,
+          sec = get().stats.secElapsed,
           charCount = get().stats.typedCharCount,
-      ) => +((charCount * 60) / (sec * 5)).toFixed(1),
+      ) => {
+          // Standard WPM calculation formula:
+          // WPM = (Total Characters / 5) / (Time in Minutes)
+          // 1 word = 5 characters (including spaces)
+          if (!sec || sec === 0 || charCount === 0) return 0;
+          const minutes = sec / 60;
+          const words = charCount / 5;
+          return Math.round(words / minutes);
+      },
       
       calcAccuracy: (
           typos = get().stats.typos,
-          charCount = get().stats.typedCharCount || 1,
-      ) => Math.max(0, +(100 - (typos * 100) / charCount).toFixed(1)),
+          charCount = get().stats.typedCharCount,
+      ) => {
+          if (!charCount || charCount === 0) return 100;
+          return Math.max(0, +(100 - (typos * 100) / charCount).toFixed(1));
+      },
 
       getBestGhostRun: () => {
           const state = get();
