@@ -16,6 +16,8 @@ export interface TestResult {
   language: 'english' | 'hindi';
   difficulty: 'easy' | 'medium' | 'hard';
   textUsed: string; 
+  timeAmount?: number;
+  wordsAmount?: number;
 }
 
 export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
@@ -26,6 +28,8 @@ interface State {
         language: "english" | "hindi";
         difficulty: "easy" | "medium" | "hard";
         theme: ThemeName;
+        timeAmount: number;
+        wordsAmount: number;
 		showRealtimeStats: boolean;
 		caseSensitive: boolean;
         soundEnabled: boolean;
@@ -48,6 +52,8 @@ interface Mutation {
     changeLanguage: (language: State["config"]["language"]) => void;
     changeDifficulty: (difficulty: State["config"]["difficulty"]) => void;
     changeTheme: (theme: ThemeName) => void;
+    setTimeAmount: (amount: number) => void;
+    setWordsAmount: (amount: number) => void;
 	toggleRealtimeStats: (bool?: boolean) => void;
 	toggleCaseSensitive: (bool?: boolean) => void;
     toggleSound: (bool?: boolean) => void;
@@ -72,6 +78,8 @@ const initialState = {
         language: "english" as const,
         difficulty: "medium" as const,
         theme: "default" as const,
+        timeAmount: 30,
+        wordsAmount: 25,
 		showRealtimeStats: true,
 		caseSensitive: false,
         soundEnabled: true,
@@ -112,6 +120,14 @@ const useStore = create<State & Mutation & Compute>()(
               config: { ...state.config, theme },
           }))
       },
+      setTimeAmount: (amount) =>
+          set((state) => ({
+              config: { ...state.config, timeAmount: amount },
+          })),
+      setWordsAmount: (amount) =>
+          set((state) => ({
+              config: { ...state.config, wordsAmount: amount },
+          })),
       toggleRealtimeStats: (bool) =>
           set((state) => ({
               config: { ...state.config, showRealtimeStats: bool ?? !state.config.showRealtimeStats },
@@ -159,6 +175,8 @@ const useStore = create<State & Mutation & Compute>()(
               mode: state.config.mode,
               language: state.config.language,
               difficulty: state.config.difficulty,
+              timeAmount: state.config.timeAmount,
+              wordsAmount: state.config.wordsAmount,
               date: new Date().toISOString(),
               keystrokes: state.currentKeystrokes,
               textUsed: state.currentText
@@ -173,9 +191,6 @@ const useStore = create<State & Mutation & Compute>()(
           sec = get().stats.secElapsed,
           charCount = get().stats.typedCharCount,
       ) => {
-          // Standard WPM calculation formula:
-          // WPM = (Total Characters / 5) / (Time in Minutes)
-          // 1 word = 5 characters (including spaces)
           if (!sec || sec === 0 || charCount === 0) return 0;
           const minutes = sec / 60;
           const words = charCount / 5;
@@ -192,10 +207,15 @@ const useStore = create<State & Mutation & Compute>()(
 
       getBestGhostRun: () => {
           const state = get();
+          const targetTime = state.config.timeAmount;
+          const targetWords = state.config.wordsAmount;
+          
           const validRuns = state.history.filter(h => 
               h.mode === state.config.mode && 
               h.language === state.config.language && 
               h.difficulty === state.config.difficulty &&
+              // Enforce same target goal for fair ghost race
+              (state.config.mode === 'time' ? (h.timeAmount || 30) === targetTime : (h.wordsAmount || 25) === targetWords) &&
               h.keystrokes?.length > 0 &&
               h.textUsed?.length > 0
           );

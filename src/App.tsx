@@ -19,34 +19,34 @@ function App() {
   }, [config.theme])
 
   const initGame = useCallback(() => {
-    // If ghost mode is ON and we have a valid ghost run for this config, USE THAT EXACT TEXT.
-    // Otherwise, generate new random text based on current difficulty/language.
+    // Determine how many words to generate based on mode and options
+    // For time mode, generate plenty of words to avoid running out
+    const generateWordCount = config.mode === 'words' ? config.wordsAmount : 200;
+
     if (config.ghostMode) {
       const bestRun = getBestGhostRun();
       if (bestRun && bestRun.textUsed) {
         setCurrentText(bestRun.textUsed);
       } else {
-        setCurrentText(getRandomText(config.mode === 'words' ? 25 : 80, config.language, config.difficulty));
+        setCurrentText(getRandomText(generateWordCount, config.language, config.difficulty));
       }
     } else {
-      setCurrentText(getRandomText(config.mode === 'words' ? 25 : 80, config.language, config.difficulty));
+      setCurrentText(getRandomText(generateWordCount, config.language, config.difficulty));
     }
     
     reset()
     setIsTyping(false)
     setIsFinished(false)
     if (timerRef.current) clearInterval(timerRef.current)
-  }, [config.mode, config.language, config.difficulty, config.ghostMode, reset, setCurrentText, getBestGhostRun])
+  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.wordsAmount, reset, setCurrentText, getBestGhostRun])
 
-  // Re-init when core settings change that would invalidate the current text
   useEffect(() => {
     initGame()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [config.mode, config.language, config.difficulty, config.ghostMode]) 
+  }, [config.mode, config.language, config.difficulty, config.ghostMode, config.timeAmount, config.wordsAmount]) 
 
-  // Initial load
   useEffect(() => {
     initGame()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -55,9 +55,6 @@ function App() {
     if (timerRef.current) clearInterval(timerRef.current)
     setIsTyping(false)
     setIsFinished(true)
-    
-    // Explicitly call the store method to save the result.
-    // Zustand's persist middleware will automatically sync the updated state array to localStorage.
     useStore.getState().saveTestResult()
   }, [])
 
@@ -67,8 +64,8 @@ function App() {
       
       timerRef.current = window.setInterval(() => {
         useStore.setState(state => {
-          if (state.config.mode === 'time' && state.stats.secElapsed >= 30) {
-            // Need to wrap finishTest in a timeout because we are inside setState
+          // Check if time mode reached its target limit
+          if (state.config.mode === 'time' && state.stats.secElapsed >= state.config.timeAmount) {
             setTimeout(() => {
                finishTest()
             }, 0)
@@ -96,7 +93,7 @@ function App() {
   return (
     <main className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}>
       
-      <div className={`w-full max-w-6xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-10 hover:opacity-100' : 'opacity-100'}`}>
+      <div className={`w-full max-w-6xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <Header />
       </div>
 
@@ -109,11 +106,10 @@ function App() {
             <div className={`absolute -top-16 left-8 font-mono text-2xl text-brand flex gap-6 transition-all duration-300 ${config.showRealtimeStats && isTyping ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <span>{useStore.getState().calcWPM()} wpm</span>
               {config.mode === 'time' && (
-                <span>{Math.max(0, 30 - stats.secElapsed)}s</span>
+                <span>{Math.max(0, config.timeAmount - stats.secElapsed)}s</span>
               )}
             </div>
             
-            {/* Only render TypingArea if we have text (prevents flash of empty box) */}
             {currentText && (
               <TypingArea 
                 text={currentText} 
