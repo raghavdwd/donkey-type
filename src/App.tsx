@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import TypingArea from './components/TypingArea'
 import Header from './components/Header'
 import StatsPanel from './components/StatsPanel'
+import HistoryModal from './components/HistoryModal'
 import { getRandomText } from './data'
 import useStore from './store'
 
@@ -10,13 +11,11 @@ function App() {
   const [isTyping, setIsTyping] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
   
-  const { config, stats, reset, saveTestResult } = useStore()
+  const { config, stats, reset, saveTestResult, isHistoryOpen } = useStore()
   
   const timerRef = useRef<number | null>(null)
 
-  // Initialize game
   const initGame = useCallback(() => {
-    // Generate enough text based on mode
     setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80))
     reset()
     setIsTyping(false)
@@ -24,7 +23,6 @@ function App() {
     if (timerRef.current) clearInterval(timerRef.current)
   }, [config.mode, reset])
 
-  // Initial load & mode change
   useEffect(() => {
     initGame()
     return () => {
@@ -39,15 +37,12 @@ function App() {
     saveTestResult()
   }, [saveTestResult])
 
-  // Handle typing start
   const handleStartTyping = useCallback(() => {
-    if (!isTyping && !isFinished) {
+    if (!isTyping && !isFinished && !isHistoryOpen) {
       setIsTyping(true)
       
-      // Start timer
       timerRef.current = window.setInterval(() => {
         useStore.setState(state => {
-          // If time mode and time's up, finish game
           if (state.config.mode === 'time' && state.stats.secElapsed >= 30) {
             finishTest()
             return state
@@ -58,9 +53,8 @@ function App() {
         })
       }, 1000)
     }
-  }, [isTyping, isFinished, finishTest])
+  }, [isTyping, isFinished, finishTest, isHistoryOpen])
 
-  // Global restart shortcut (Tab + Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
@@ -75,19 +69,16 @@ function App() {
   return (
     <main className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}>
       
-      {/* Dynamic wrapper to fade out distracting elements while typing */}
       <div className={`w-full max-w-5xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-10 hover:opacity-100' : 'opacity-100'}`}>
         <Header />
       </div>
 
-      {/* Main interaction area */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-8 flex flex-col items-center gap-12">
         
         {isFinished ? (
           <StatsPanel onRestart={initGame} />
         ) : (
           <>
-            {/* Realtime mini-stats */}
             <div className={`absolute -top-16 left-8 font-mono text-2xl text-brand flex gap-6 transition-all duration-300 ${config.showRealtimeStats && isTyping ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <span>{useStore.getState().calcWPM()} wpm</span>
               {config.mode === 'time' && (
@@ -104,11 +95,11 @@ function App() {
         )}
       </div>
 
-      {/* Footer shortcut hints */}
       <div className={`absolute bottom-8 text-text-muted text-sm font-mono transition-opacity duration-500 ${isTyping && !isFinished ? 'opacity-0' : 'opacity-100'}`}>
         <span className="bg-bg-secondary px-2 py-1 rounded border border-neutral-800 text-brand">tab</span> to restart
       </div>
       
+      <HistoryModal />
     </main>
   )
 }

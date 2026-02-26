@@ -1,9 +1,9 @@
-import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost } from 'lucide-react'
+import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost, History } from 'lucide-react'
 import useStore from '../store'
 import clsx from 'clsx'
 
 export default function Header() {
-  const { config, changeMode, toggleSound, toggleGhostMode } = useStore()
+  const { config, changeMode, toggleSound, toggleGhostMode, toggleHistory } = useStore()
 
   return (
     <header className="w-full flex items-center justify-between py-12">
@@ -42,6 +42,16 @@ export default function Header() {
 
       {/* Settings / Toggles */}
       <div className="flex items-center gap-4 text-text-muted">
+        <button 
+          onClick={() => toggleHistory()}
+          className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors"
+          title="View History & Stats"
+        >
+          <History className="w-5 h-5" />
+        </button>
+
+        <div className="w-px h-6 bg-neutral-800" />
+        
         <button 
           onClick={() => toggleGhostMode()}
           className={clsx(

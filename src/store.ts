@@ -2,17 +2,17 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface KeystrokeTiming {
-  charIndex: number; // total characters typed
-  timestamp: number; // ms since start
+  charIndex: number;
+  timestamp: number;
 }
 
-interface TestResult {
+export interface TestResult {
   id: string;
   wpm: number;
   accuracy: number;
   mode: string;
   date: string;
-  keystrokes: KeystrokeTiming[]; // Saved for ghost mode
+  keystrokes: KeystrokeTiming[];
 }
 
 interface State {
@@ -31,6 +31,7 @@ interface State {
 	};
     currentKeystrokes: KeystrokeTiming[];
     history: TestResult[];
+    isHistoryOpen: boolean;
 }
 
 interface Mutation {
@@ -39,6 +40,7 @@ interface Mutation {
 	toggleCaseSensitive: (bool?: boolean) => void;
     toggleSound: (bool?: boolean) => void;
     toggleGhostMode: (bool?: boolean) => void;
+    toggleHistory: (bool?: boolean) => void;
 	incrStat: (stat: keyof State["stats"]) => void;
     recordKeystroke: (charIndex: number, timestamp: number) => void;
 	reset: () => void;
@@ -66,6 +68,7 @@ const initialState = {
 		secElapsed: 0,
 	},
     currentKeystrokes: [],
+    isHistoryOpen: false,
 };
 
 const useStore = create<State & Mutation & Compute>()(
@@ -112,6 +115,10 @@ const useStore = create<State & Mutation & Compute>()(
                   ghostMode: bool === undefined ? !state.config.ghostMode : bool,
               },
           })),
+      toggleHistory: (bool) =>
+          set((state) => ({
+              isHistoryOpen: bool === undefined ? !state.isHistoryOpen : bool,
+          })),
       incrStat: (stat) =>
           set((state) => ({
               stats: {
@@ -143,7 +150,7 @@ const useStore = create<State & Mutation & Compute>()(
           };
           
           set((state) => ({
-              history: [newResult, ...state.history].slice(0, 50) 
+              history: [newResult, ...state.history].slice(0, 100) // Keep last 100
           }));
       },
 
@@ -161,7 +168,6 @@ const useStore = create<State & Mutation & Compute>()(
           const state = get();
           const validRuns = state.history.filter(h => h.mode === state.config.mode && h.keystrokes?.length > 0);
           if (validRuns.length === 0) return null;
-          // Return the one with highest WPM
           return validRuns.reduce((best, curr) => curr.wpm > best.wpm ? curr : best, validRuns[0]);
       }
     }),
