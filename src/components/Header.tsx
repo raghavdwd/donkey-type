@@ -1,26 +1,60 @@
-import { Keyboard, Timer, AlignLeft, Volume2, VolumeX, Ghost, History, Languages, Palette, Gauge } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  Keyboard,
+  Timer,
+  AlignLeft,
+  Volume2,
+  VolumeX,
+  Ghost,
+  History,
+  Languages,
+  Palette,
+  Gauge,
+  Wind,
+} from 'lucide-react'
 import useStore from '../store'
 import type { ThemeName } from '../store'
 import clsx from 'clsx'
 
-const THEMES: ThemeName[] = ['default', 'nord', 'matcha', 'cyberpunk', 'midnight']
+const THEMES: ThemeName[] = [
+  'default',
+  'nord',
+  'matcha',
+  'cyberpunk',
+  'midnight',
+]
 const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 
 export default function Header() {
-  const { 
-      config, 
-      changeMode, 
-      changeLanguage, 
-      changeTheme, 
-      changeDifficulty, 
-      setTimeAmount,
-      setTimeUnit,
-      setWordsAmount,
-      setWordUnit,
-      toggleSound, 
-      toggleGhostMode, 
-      toggleHistory 
+  const {
+    config,
+    changeMode,
+    changeLanguage,
+    changeTheme,
+    changeDifficulty,
+    setTimeAmount,
+    setTimeUnit,
+    setWordsAmount,
+    setWordUnit,
+    toggleSound,
+    toggleGhostMode,
+    toggleHistory,
   } = useStore()
+
+  const [localTimeAmount, setLocalTimeAmount] = useState(
+    config.timeAmount.toString(),
+  )
+  const [localWordsAmount, setLocalWordsAmount] = useState(
+    config.wordsAmount.toString(),
+  )
+
+  useEffect(() => {
+    setLocalTimeAmount(config.timeAmount.toString())
+  }, [config.timeAmount])
+
+  useEffect(() => {
+    setLocalWordsAmount(config.wordsAmount.toString())
+  }, [config.wordsAmount])
 
   const handleNextTheme = () => {
     const currentIndex = THEMES.indexOf(config.theme)
@@ -34,166 +68,302 @@ export default function Header() {
     changeDifficulty(DIFFICULTIES[nextIndex])
   }
 
+  const handleCustomTimeSubmit = () => {
+    const val = parseInt(localTimeAmount)
+    if (!isNaN(val) && val > 0) {
+      setTimeAmount(val)
+    } else {
+      setLocalTimeAmount(config.timeAmount.toString())
+    }
+  }
+
+  const handleCustomWordsSubmit = () => {
+    const val = parseInt(localWordsAmount)
+    if (!isNaN(val) && val > 0) {
+      setWordsAmount(val)
+    } else {
+      setLocalWordsAmount(config.wordsAmount.toString())
+    }
+  }
+
   return (
-    <header className="w-full flex items-center justify-between py-12">
+    <header className="w-full flex items-center justify-between py-8">
       {/* Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 group cursor-pointer">
         <div className="relative">
-          <Keyboard className="w-8 h-8 text-brand" />
-          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-brand rounded-full animate-pulse" />
+          <Keyboard className="w-9 h-9 text-brand transition-transform duration-300 group-hover:scale-110" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-brand rounded-full border-2 border-bg animate-pulse" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tighter text-brand font-mono hidden md:block">
-          donkey<span className="text-text">type</span>
-        </h1>
+        <div className="flex flex-col -gap-1">
+          <h1 className="text-3xl font-black tracking-tight text-brand font-mono hidden md:block">
+            donkey<span className="text-text">type</span>
+          </h1>
+          <div className="h-0.5 w-0 group-hover:w-full bg-brand transition-all duration-300 rounded-full" />
+        </div>
       </div>
 
       {/* Navigation / Modes & Options */}
-      <div className="flex items-center gap-4 bg-bg-secondary p-1.5 rounded-xl border border-neutral-800/50 shadow-xl font-mono text-sm">
-        
+      <div className="flex items-center gap-1 bg-bg-secondary p-0.5 rounded-xl border border-neutral-800/50 shadow-xl font-mono text-[13px]">
         {/* Modes */}
-        <div className="flex items-center gap-1">
-            <button 
-              onClick={() => changeMode('time')}
-              className={clsx(
-                "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200",
-                config.mode === 'time' ? "bg-bg text-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg/50"
-              )}
-            >
-              <Timer className="w-4 h-4" /> time
-            </button>
-            <button 
-              onClick={() => changeMode('words')}
-              className={clsx(
-                "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200",
-                config.mode === 'words' ? "bg-bg text-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg/50"
-              )}
-            >
-              <AlignLeft className="w-4 h-4" /> words
-            </button>
+        <div className="flex items-center px-1">
+          <button
+            onClick={() => changeMode('time')}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
+              config.mode === 'time'
+                ? 'bg-brand text-bg shadow-sm font-bold'
+                : 'text-text-muted hover:text-text hover:bg-bg/40',
+            )}
+          >
+            <Timer className="w-3.5 h-3.5" /> time
+          </button>
+          <button
+            onClick={() => changeMode('words')}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
+              config.mode === 'words'
+                ? 'bg-brand text-bg shadow-sm font-bold'
+                : 'text-text-muted hover:text-text hover:bg-bg/40',
+            )}
+          >
+            <AlignLeft className="w-3.5 h-3.5" /> words
+          </button>
+          <button
+            onClick={() => changeMode('zen')}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
+              config.mode === 'zen'
+                ? 'bg-brand text-bg shadow-sm font-bold'
+                : 'text-text-muted hover:text-text hover:bg-bg/40',
+            )}
+          >
+            <Wind className="w-3.5 h-3.5" /> zen
+          </button>
         </div>
 
-        <div className="w-px h-6 bg-neutral-800/50" />
+        <div className="w-px h-5 bg-neutral-800/80 mx-1" />
 
-        {/* Inputs based on Mode */}
-        <div className="flex items-center gap-2 pr-2">
-            {config.mode === 'time' && (
-                <>
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={config.timeAmount}
-                    onChange={(e) => setTimeAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-14 bg-bg text-text px-2 py-1 rounded border border-neutral-700 outline-none focus:border-brand transition-colors text-center"
+        {/* Dynamic Controls based on selected Mode */}
+        <div className="flex items-center gap-1.5 px-2">
+          {config.mode === 'time' && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+              <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
+                {[5, 10, 15].map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => {
+                      setTimeAmount(amount)
+                      setLocalTimeAmount(amount.toString())
+                    }}
+                    className={clsx(
+                      'px-2 py-0.5 rounded transition-all duration-200 text-[11px] font-bold',
+                      config.timeAmount === amount
+                        ? 'bg-brand text-bg shadow-sm scale-110'
+                        : 'text-text-muted hover:text-text hover:bg-bg/50',
+                    )}
+                  >
+                    {amount}
+                  </button>
+                ))}
+              </div>
+              <div className="w-px h-4 bg-neutral-800/50" />
+              <div className="flex items-center gap-1">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="custom"
+                    value={localTimeAmount}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '')
+                      setLocalTimeAmount(val)
+                    }}
+                    onBlur={handleCustomTimeSubmit}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCustomTimeSubmit()
+                        ;(e.target as HTMLInputElement).blur()
+                      }
+                    }}
+                    className="w-10 bg-bg/50 text-text px-1 py-1 rounded-md border border-neutral-800/50 outline-none focus:border-brand/50 transition-all text-center group-hover:bg-bg text-[11px] placeholder:text-text-muted/40"
                   />
-                  <div className="flex bg-bg rounded overflow-hidden border border-neutral-700">
-                    <button 
-                      onClick={() => setTimeUnit('s')} 
-                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 's' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
-                    >s</button>
-                    <button 
-                      onClick={() => setTimeUnit('m')} 
-                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 'm' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
-                    >m</button>
-                    <button 
-                      onClick={() => setTimeUnit('h')} 
-                      className={clsx("px-2 py-1 transition-colors", config.timeUnit === 'h' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
-                    >h</button>
-                  </div>
-                </>
-            )}
-            
-            {config.mode === 'words' && (
-                <>
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={config.wordsAmount}
-                    onChange={(e) => setWordsAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 bg-bg text-text px-2 py-1 rounded border border-neutral-700 outline-none focus:border-brand transition-colors text-center"
+                </div>
+                <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
+                  {(['s', 'm', 'h'] as const).map((unit) => (
+                    <button
+                      key={unit}
+                      onClick={() => setTimeUnit(unit)}
+                      className={clsx(
+                        'px-1.5 py-0.5 rounded transition-all duration-200 uppercase text-[10px] font-bold',
+                        config.timeUnit === unit
+                          ? 'bg-neutral-600 text-text shadow-sm'
+                          : 'text-text-muted/60 hover:text-text hover:bg-bg/50',
+                      )}
+                    >
+                      {unit}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {config.mode === 'words' && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+              <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
+                {[400, 600].map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => {
+                      setWordsAmount(amount)
+                      setLocalWordsAmount(amount.toString())
+                    }}
+                    className={clsx(
+                      'px-2 py-0.5 rounded transition-all duration-200 text-[11px] font-bold',
+                      config.wordsAmount === amount
+                        ? 'bg-brand text-bg shadow-sm scale-110'
+                        : 'text-text-muted hover:text-text hover:bg-bg/50',
+                    )}
+                  >
+                    {amount}
+                  </button>
+                ))}
+              </div>
+              <div className="w-px h-4 bg-neutral-800/50" />
+              <div className="flex items-center gap-1">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="custom"
+                    value={localWordsAmount}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '')
+                      setLocalWordsAmount(val)
+                    }}
+                    onBlur={handleCustomWordsSubmit}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCustomWordsSubmit()
+                        ;(e.target as HTMLInputElement).blur()
+                      }
+                    }}
+                    className="w-10 bg-bg/50 text-text px-1 py-1 rounded-md border border-neutral-800/50 outline-none focus:border-brand/50 transition-all text-center group-hover:bg-bg text-[11px] placeholder:text-text-muted/40"
                   />
-                  <div className="flex bg-bg rounded overflow-hidden border border-neutral-700">
-                    <button 
-                      onClick={() => setWordUnit('words')} 
-                      className={clsx("px-2 py-1 transition-colors", config.wordUnit === 'words' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
-                    >words</button>
-                    <button 
-                      onClick={() => setWordUnit('chars')} 
-                      className={clsx("px-2 py-1 transition-colors", config.wordUnit === 'chars' ? "bg-brand text-bg" : "text-text-muted hover:text-text")}
-                    >chars</button>
-                  </div>
-                </>
-            )}
+                </div>
+                <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
+                  {(['words', 'chars'] as const).map((unit) => (
+                    <button
+                      key={unit}
+                      onClick={() => setWordUnit(unit)}
+                      className={clsx(
+                        'px-1.5 py-0.5 rounded transition-all duration-200 capitalize text-[10px] font-bold',
+                        config.wordUnit === unit
+                          ? 'bg-neutral-600 text-text shadow-sm'
+                          : 'text-text-muted/60 hover:text-text hover:bg-bg/50',
+                      )}
+                    >
+                      {unit === 'words' ? 'w' : 'c'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-
       </div>
 
       {/* Settings / Toggles */}
-      <div className="flex items-center gap-2 md:gap-4 text-text-muted">
-        
-        {/* Difficulty Toggle */}
-        <button 
-          onClick={handleNextDifficulty}
-          className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-colors font-mono text-sm hover:text-brand hover:bg-bg-secondary"
-          title={`Current Difficulty: ${config.difficulty} (Click to change)`}
-        >
-          <Gauge className="w-4 h-4" />
-          <span className="hidden lg:inline capitalize">{config.difficulty}</span>
-        </button>
+      <div className="flex items-center bg-bg-secondary/50 p-1 rounded-xl border border-neutral-800/50 shadow-md">
+        <div className="flex items-center gap-0.5">
+          {/* Difficulty Toggle */}
+          <button
+            onClick={handleNextDifficulty}
+            className="group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
+            title={`Difficulty: ${config.difficulty}`}
+          >
+            <Gauge className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline uppercase font-bold tracking-wider">
+              {config.difficulty}
+            </span>
+          </button>
 
-        <div className="w-px h-6 bg-neutral-800/50 hidden sm:block" />
+          <div className="w-px h-4 bg-neutral-800 hidden sm:block mx-1" />
 
-        {/* Theme Toggle */}
-        <button 
-          onClick={handleNextTheme}
-          className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-colors font-mono text-sm hover:text-brand hover:bg-bg-secondary"
-          title={`Current Theme: ${config.theme} (Click to change)`}
-        >
-          <Palette className="w-4 h-4" />
-          <span className="hidden lg:inline capitalize">{config.theme}</span>
-        </button>
+          {/* Theme Toggle */}
+          <button
+            onClick={handleNextTheme}
+            className="group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
+            title={`Theme: ${config.theme}`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline uppercase font-bold tracking-wider">
+              {config.theme}
+            </span>
+          </button>
 
-        <div className="w-px h-6 bg-neutral-800/50 hidden sm:block" />
+          <div className="w-px h-4 bg-neutral-800 hidden sm:block mx-1" />
 
-        <button 
-          onClick={() => changeLanguage(config.language === 'english' ? 'hindi' : 'english')}
-          className={clsx(
-            "flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-colors font-mono text-sm border border-transparent",
-            config.language === 'hindi' ? "text-success bg-success/10 border-success/20" : "hover:text-brand hover:bg-bg-secondary"
-          )}
-          title="Toggle Language"
-        >
-          <Languages className="w-4 h-4" />
-          <span className="hidden lg:inline">{config.language === 'english' ? 'en' : 'hi'}</span>
-        </button>
+          {/* Language Toggle */}
+          <button
+            onClick={() =>
+              changeLanguage(
+                config.language === 'english' ? 'hindi' : 'english',
+              )
+            }
+            className={clsx(
+              'group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px]',
+              config.language === 'hindi'
+                ? 'text-success bg-success/5'
+                : 'text-text-muted hover:bg-bg/60 hover:text-brand',
+            )}
+            title="Language"
+          >
+            <Languages className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline uppercase font-bold tracking-wider">
+              {config.language === 'english' ? 'en' : 'hi'}
+            </span>
+          </button>
+        </div>
 
-        <div className="w-px h-6 bg-neutral-800/50" />
+        <div className="w-px h-6 bg-neutral-800 mx-2" />
 
-        <button 
-          onClick={() => toggleHistory()}
-          className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors"
-          title="View History & Stats"
-        >
-          <History className="w-5 h-5" />
-        </button>
-        
-        <button 
-          onClick={() => toggleGhostMode()}
-          className={clsx(
-            "p-2 rounded-lg transition-colors",
-            config.ghostMode ? "text-blue-400 bg-blue-400/10 shadow-[0_0_15px_rgba(96,165,250,0.2)]" : "hover:text-brand hover:bg-bg-secondary"
-          )}
-          title="Toggle Ghost Mode (race your best time)"
-        >
-          <Ghost className="w-5 h-5" />
-        </button>
-        
-        <button 
-          onClick={() => toggleSound()}
-          className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors"
-          title="Toggle typing sounds"
-        >
-          {config.soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-1 pr-1">
+          <button
+            onClick={() => toggleHistory()}
+            className="p-2 text-text-muted hover:text-brand hover:bg-bg/60 rounded-lg transition-all"
+            title="History"
+          >
+            <History className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => toggleGhostMode()}
+            className={clsx(
+              'p-2 rounded-lg transition-all',
+              config.ghostMode
+                ? 'text-blue-400 bg-blue-400/5'
+                : 'text-text-muted hover:text-brand hover:bg-bg/60',
+            )}
+            title="Ghost Mode"
+          >
+            <Ghost className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => toggleSound()}
+            className="p-2 text-text-muted hover:text-brand hover:bg-bg/60 rounded-lg transition-all"
+            title="Sound"
+          >
+            {config.soundEnabled ? (
+              <Volume2 className="w-4 h-4" />
+            ) : (
+              <VolumeX className="w-4 h-4" />
+            )}
+          </button>
+        </div>
       </div>
     </header>
   )

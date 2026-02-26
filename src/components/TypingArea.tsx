@@ -170,7 +170,19 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   }, [text])
 
   useEffect(() => {
-    const handleGlobalClick = () => containerRef.current?.focus()
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      // Don't steal focus if clicking on interactive elements
+      if (
+        ['INPUT', 'BUTTON', 'A', 'TEXTAREA'].includes(target.tagName) ||
+        target.closest('button') ||
+        target.closest('input') ||
+        target.closest('a')
+      ) {
+        return
+      }
+      containerRef.current?.focus()
+    }
     window.addEventListener('click', handleGlobalClick)
     return () => window.removeEventListener('click', handleGlobalClick)
   }, [])
