@@ -1,6 +1,6 @@
-import { RefreshCcw, Trophy, Target, Zap } from 'lucide-react'
+import { RefreshCcw, Trophy, Target } from 'lucide-react'
 import useStore from '../store'
-import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEffect, useState } from 'react'
 
 export default function StatsPanel({ onRestart }: { onRestart: () => void }) {
