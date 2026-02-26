@@ -10,7 +10,7 @@ function App() {
   const [isTyping, setIsTyping] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
   
-  const { config, stats, reset, incrStat } = useStore()
+  const { config, stats, reset, saveTestResult } = useStore()
   
   const timerRef = useRef<number | null>(null)
 
@@ -31,6 +31,13 @@ function App() {
     }
   }, [initGame])
 
+  const finishTest = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    setIsTyping(false)
+    setIsFinished(true)
+    saveTestResult()
+  }, [saveTestResult])
+
   // Handle typing start
   const handleStartTyping = useCallback(() => {
     if (!isTyping && !isFinished) {
@@ -41,9 +48,7 @@ function App() {
         useStore.setState(state => {
           // If time mode and time's up, finish game
           if (state.config.mode === 'time' && state.stats.secElapsed >= 30) {
-            clearInterval(timerRef.current!)
-            setIsFinished(true)
-            setIsTyping(false)
+            finishTest()
             return state
           }
           return {
@@ -52,7 +57,7 @@ function App() {
         })
       }, 1000)
     }
-  }, [isTyping, isFinished])
+  }, [isTyping, isFinished, finishTest])
 
   // Global restart shortcut (Tab + Enter)
   useEffect(() => {
@@ -94,11 +99,7 @@ function App() {
             <TypingArea 
               text={practiceText} 
               onStart={handleStartTyping}
-              onFinish={() => {
-                if (timerRef.current) clearInterval(timerRef.current)
-                setIsTyping(false)
-                setIsFinished(true)
-              }}
+              onFinish={finishTest}
             />
           </>
         )}

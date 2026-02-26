@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import clsx from 'clsx'
 import useStore from '../store'
 
@@ -12,11 +12,28 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const [currWordIndex, setCurrWordIndex] = React.useState(0)
   const [currLetterIndex, setCurrLetterIndex] = React.useState(0)
   const [typos, setTypos] = React.useState(new Set<`${number},${number}`>())
-  const [history, setHistory] = React.useState<Record<string, string>>({})
   
   const containerRef = useRef<HTMLDivElement>(null)
-  const { incrStat } = useStore()
   
+  // Sound setup
+  const { config, incrStat } = useStore()
+  const typeSound = useRef(new Audio('https://actions.google.com/sounds/v1/foley/mechanical_keyboard_fast_typing.ogg'))
+  const errorSound = useRef(new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'))
+  
+  useEffect(() => {
+    typeSound.current.volume = 0.2
+    errorSound.current.volume = 0.1
+  }, [])
+
+  const playSound = useCallback((isError: boolean = false) => {
+    if (!config.soundEnabled) return
+    
+    const audio = isError ? errorSound.current : typeSound.current
+    // Quick reset to allow rapid firing
+    audio.currentTime = 0 
+    audio.play().catch(() => {})
+  }, [config.soundEnabled])
+
   const words = text.split(' ')
 
   // Auto-focus on mount
@@ -37,6 +54,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
 
     // Handle Backspace
     if (e.key === 'Backspace') {
+      playSound()
       if (currLetterIndex > 0) {
         setCurrLetterIndex((prev) => prev - 1)
         setTypos((prev) => {
@@ -45,11 +63,8 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
           return newSet
         })
       } else if (currWordIndex > 0) {
-        // Go back to previous word if we're at the start of current word
         setCurrWordIndex(prev => prev - 1)
-        // Find where we were in the previous word (at the end of whatever was typed)
         const prevWordActual = words[currWordIndex - 1]
-        // This is a simplified fallback - we just put caret at the end of the expected word
         setCurrLetterIndex(prevWordActual.length)
       }
       e.preventDefault()
@@ -58,14 +73,13 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
 
     // Handle Space (next word)
     if (e.key === ' ') {
-      // Prevent rapid spacing
+      playSound()
       if (currLetterIndex === 0) {
         e.preventDefault()
         return
       }
       
       if (currWordIndex === words.length - 1) {
-        // Last word finished
         onFinish()
         return
       }
@@ -79,21 +93,25 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
 
     // Handle printable characters
     if (e.key.length === 1) {
-      // Don't allow typing infinitely past word length
       if (currLetterIndex < currWord.length + 5) {
         incrStat('typedCharCount')
         
-        // Check for typo against expected letter
+        let isTypo = false
         if (currLetterIndex < currWord.length) {
           const expectedLetter = currWord[currLetterIndex]
           if (expectedLetter !== e.key) {
-            setTypos((prev) => new Set(prev).add(`${currWordIndex},${currLetterIndex}`))
-            incrStat('typos')
+            isTypo = true
           }
         } else {
-          // Extra characters typed are automatically typos
+          isTypo = true
+        }
+
+        if (isTypo) {
+          playSound(true)
           setTypos((prev) => new Set(prev).add(`${currWordIndex},${currLetterIndex}`))
           incrStat('typos')
+        } else {
+          playSound()
         }
         
         setCurrLetterIndex((prev) => prev + 1)
@@ -159,7 +177,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
               {/* Handle extra characters typed past word length */}
               {isCurrWord && currLetterIndex >= word.length && Array.from({ length: currLetterIndex - word.length }).map((_, extraIdx) => (
                 <span key={`extra-${extraIdx}`} className="text-error border-b-2 border-error opacity-70">
-                  {/* Using a dot or actual tracked extra char here if we mapped it, for now just generic error mark */}
                   *
                 </span>
               ))}

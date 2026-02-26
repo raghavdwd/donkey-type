@@ -1,9 +1,9 @@
-import { Keyboard, Timer, AlignLeft, Settings2 } from 'lucide-react'
+import { Keyboard, Timer, AlignLeft, Volume2, VolumeX } from 'lucide-react'
 import useStore from '../store'
 import clsx from 'clsx'
 
 export default function Header() {
-  const { config, changeMode } = useStore()
+  const { config, changeMode, toggleSound } = useStore()
 
   return (
     <header className="w-full flex items-center justify-between py-12">
@@ -40,10 +40,14 @@ export default function Header() {
         </button>
       </nav>
 
-      {/* Settings / Profile placeholder */}
+      {/* Settings / Sound */}
       <div className="flex items-center gap-4 text-text-muted">
-        <button className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors">
-          <Settings2 className="w-5 h-5" />
+        <button 
+          onClick={() => toggleSound()}
+          className="p-2 hover:text-brand hover:bg-bg-secondary rounded-lg transition-colors"
+          title="Toggle typing sounds"
+        >
+          {config.soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </button>
       </div>
     </header>
