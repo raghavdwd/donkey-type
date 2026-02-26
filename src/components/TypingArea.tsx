@@ -14,7 +14,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const [typos, setTypos] = React.useState(new Set<`${number},${number}`>())
   const [isFocused, setIsFocused] = React.useState(true) 
   
-  // Ghost mode state
   const [ghostWordIndex, setGhostWordIndex] = useState(0)
   const [ghostLetterIndex, setGhostLetterIndex] = useState(0)
   const testStartTime = useRef<number>(0)
@@ -27,24 +26,21 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   const ghostRun = useMemo(() => config.ghostMode ? getBestGhostRun() : null, [config.ghostMode, getBestGhostRun])
   const totalTypedChars = useRef(0)
 
+  // Use local audio files to avoid CORS / OpaqueResponseBlocking errors
   const playSound = useCallback((isError: boolean = false) => {
     if (!config.soundEnabled) return
     try {
-      const audio = new Audio(isError 
-        ? 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' 
-        : 'https://actions.google.com/sounds/v1/foley/mechanical_keyboard_fast_typing.ogg')
+      const audio = new Audio(isError ? '/sounds/error.ogg' : '/sounds/type.ogg')
       audio.volume = isError ? 0.1 : 0.2
-      audio.play().catch(() => {})
+      // Extremely short sound clips can overlap and cause DOMException if not played cleanly, 
+      // cloneNode ensures we can fire multiple shots instantly without interrupting the previous one.
+      const clone = audio.cloneNode() as HTMLAudioElement;
+      clone.play().catch(() => {})
     } catch (e) {}
   }, [config.soundEnabled])
 
-  // Split text into words. For Hindi, we need to treat the word as a whole unit
-  // when typing, because Devanagari characters combine to form ligatures.
   const words = text.split(' ')
   
-  // Helper to split a word into an array of its composing characters/graphemes safely.
-  // Standard split('') breaks Devanagari ligatures (matras, halants) into separate non-rendered pieces.
-  // Using Intl.Segmenter correctly splits complex script graphemes into visual units.
   const segmenter = useMemo(() => new Intl.Segmenter(config.language === 'hindi' ? 'hi' : 'en', { granularity: 'grapheme' }), [config.language])
   
   const wordGraphemes = useMemo(() => {
@@ -168,7 +164,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       return
     }
 
-    // Capture standard character input
     if (e.key.length === 1) {
       if (currLetterIndex < currWordChars.length + 5) {
         incrStat('typedCharCount')
@@ -177,9 +172,6 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
         let isTypo = false
         if (currLetterIndex < currWordChars.length) {
           const expectedChar = currWordChars[currLetterIndex]
-          // In Hindi, people might type the full grapheme (if using phonetic) or parts of it
-          // This strict equality check might need relaxing if using certain IME keyboards,
-          // but for basic mapping it works.
           if (expectedChar !== e.key) {
             isTypo = true
           }
@@ -213,7 +205,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       tabIndex={0}
       className={clsx(
         "flex flex-wrap focus:outline-none relative font-mono text-3xl leading-relaxed outline-none w-full max-h-[150px] overflow-hidden",
-        config.language === 'hindi' ? "font-sans" : "font-mono" // Hindi looks better in sans-serif to render complex ligatures correctly
+        config.language === 'hindi' ? "font-sans" : "font-mono"
       )}
       {...props}
     >
