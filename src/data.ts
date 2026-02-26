@@ -1,43 +1,22 @@
-const englishWords = [
-  "the", "be", "of", "and", "a", "to", "in", "he", "have", "it", "that", "for",
-  "they", "I", "with", "as", "not", "on", "she", "at", "by", "this", "we", "you",
-  "do", "but", "from", "or", "which", "one", "would", "all", "will", "there", "say",
-  "who", "make", "when", "can", "more", "if", "no", "man", "out", "other", "so",
-  "what", "time", "up", "go", "about", "than", "into", "could", "state", "only",
-  "new", "year", "some", "take", "come", "these", "know", "see", "use", "get",
-  "like", "then", "first", "any", "work", "now", "may", "such", "give", "over",
-  "think", "most", "even", "find", "day", "also", "after", "way", "many", "must",
-  "look", "before", "great", "back", "through", "long", "where", "much", "should",
-  "well", "people", "down", "own", "just", "because", "good", "each", "those",
-  "feel", "seem", "how", "high", "too", "place", "little", "world", "very", "still",
-  "nation", "hand", "old", "life", "tell", "write", "become", "here", "show",
-  "house", "both", "between", "need", "mean", "call", "develop", "under", "last",
-  "right", "move", "thing", "general", "school", "never", "same", "another",
-  "begin", "while", "number", "part", "turn", "real", "leave", "might", "want",
-  "point", "form", "off", "child", "few", "small", "since", "against", "ask",
-  "late", "home", "interest", "large", "person", "end", "open", "public", "follow",
-  "during", "present", "without", "again", "hold", "govern", "around", "possible",
-  "head", "consider", "word", "program", "problem", "however", "lead", "system",
-  "set", "order", "eye", "plan", "run", "keep", "face", "fact", "group", "play",
-  "stand", "increase", "early", "course", "change", "help", "line"
-]
+const enEasy = ["the", "be", "of", "and", "a", "to", "in", "he", "have", "it", "that", "for", "they", "I", "with", "as", "not", "on", "she", "at", "by", "this", "we", "you", "do", "but", "from", "or", "which", "one", "would", "all", "will", "there", "say", "who", "make", "when", "can", "more", "if", "no", "man", "out", "other", "so", "what", "time", "up", "go"]
+const enMedium = ["develop", "consider", "without", "however", "system", "increase", "general", "because", "program", "problem", "present", "nation", "course", "against", "interest", "govern", "possible", "public", "school", "become", "through", "between", "another", "something", "business", "student", "country", "company", "provide", "service", "always", "number", "group", "family", "fact", "water"]
+const enHard = ["pneumonia", "labyrinth", "miscellaneous", "chrysanthemum", "unprecedented", "rhythm", "embarrass", "fluorescent", "accommodate", "occurrence", "consensus", "pharaoh", "bourgeois", "camouflage", "conscientious", "ecstasy", "fascinating", "guarantee", "hypocrisy", "liaison", "millennium", "paraphernalia", "pronunciation", "questionnaire", "reminisce", "susceptible", "unanimous", "symmetrical", "maneuver", "mischievous", "nauseous", "hierarchy", "entrepreneur", "bureaucracy"]
 
-const hindiWords = [
-  "और", "है", "का", "कि", "यह", "एक", "में", "को", "नहीं", "से", "लिए", "पर", "तो", "भी", "ही", 
-  "जो", "कर", "हो", "क्या", "था", "साथ", "लेकिन", "अपने", "किया", "बात", "कुछ", "करना", "कोई", 
-  "हुए", "गया", "तक", "होता", "हम", "आप", "तथा", "मुझे", "बाद", "वाले", "दिया", "कहा", "जब", "अब", 
-  "उन", "उन्हें", "कहना", "होने", "दो", "यहाँ", "वहाँ", "बहुत", "गई", "थे", "वह", "लोग", "सकते", 
-  "अगर", "समय", "उस", "उसी", "पास", "जैसे", "जाता", "गए", "कम", "सभी", "तरह", "उनके", "जा", 
-  "जाते", "करते", "तय", "कभी", "इन", "उसकी", "उनका", "वाला", "वाली", "चाहिए", "कारण", "क्यों", 
-  "होती", "बार", "दिन", "न", "काम", "आ", "आज", "जाती", "आदि", "कहते", "दे", "देने", "देता", "ले", 
-  "लेने", "लेता", "फिर", "रहे", "रही", "रहा", "मेरा", "मेरी", "मेरे", "पहले", "ऐसे", "ऐसी", "ऐसा"
-]
+const hiEasy = ["और", "है", "का", "कि", "यह", "एक", "में", "को", "नहीं", "से", "लिए", "पर", "तो", "भी", "ही", "जो", "कर", "हो", "क्या", "था", "साथ", "हम", "आप", "मुझे", "जब", "अब", "वह", "दिन", "न", "काम", "आ", "आज", "यह", "वे", "गए", "गई"]
+const hiMedium = ["लेकिन", "अपने", "किया", "तथा", "वाले", "दिया", "कहा", "उन्हें", "कहना", "होने", "यहाँ", "वहाँ", "बहुत", "सकते", "अगर", "समय", "जैसे", "जाता", "सभी", "तरह", "उनके", "जाते", "करते", "कभी", "चाहिए", "कारण", "क्यों", "इसलिए", "क्योंकि", "जिससे", "हमेशा", "शायद", "केवल", "बल्कि", "चाहते"]
+const hiHard = ["अंतर्राष्ट्रीय", "परिस्थिति", "महत्वपूर्ण", "जिम्मेदारी", "संभावना", "विश्वविद्यालय", "प्रौद्योगिकी", "आविष्कार", "निर्णय", "स्वतंत्रता", "प्रशासनिक", "दृष्टिकोण", "प्रतिस्पर्धा", "सकारात्मक", "निम्नलिखित", "विशेषता", "आवश्यकता", "आध्यात्मिक", "संस्थागत", "पारंपरिक", "आर्थिक", "संविधान", "अधिकार", "निष्कर्ष", "वैज्ञानिक", "विश्लेषण", "परिवर्तनशील", "उल्लेखनीय"]
 
-export const getRandomText = (count: number = 50, language: 'english' | 'hindi' = 'english') => {
-  const wordList = language === 'hindi' ? hindiWords : englishWords;
+export const getRandomText = (count: number = 50, language: 'english' | 'hindi' = 'english', difficulty: 'easy' | 'medium' | 'hard' = 'medium') => {
+  let pool: string[] = [];
+  if (language === 'english') {
+      pool = difficulty === 'easy' ? enEasy : difficulty === 'medium' ? enMedium : enHard;
+  } else {
+      pool = difficulty === 'easy' ? hiEasy : difficulty === 'medium' ? hiMedium : hiHard;
+  }
+
   let text = ''
   for (let i = 0; i < count; i++) {
-    text += wordList[Math.floor(Math.random() * wordList.length)] + ' '
+    text += pool[Math.floor(Math.random() * pool.length)] + ' '
   }
   return text.trim()
 }

@@ -7,33 +7,50 @@ import { getRandomText } from './data'
 import useStore from './store'
 
 function App() {
-  const [practiceText, setPracticeText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
   
-  const { config, stats, reset, saveTestResult, isHistoryOpen } = useStore()
+  const { config, stats, currentText, setCurrentText, reset, saveTestResult, isHistoryOpen, getBestGhostRun } = useStore()
   
   const timerRef = useRef<number | null>(null)
 
-  // Initialize theme on mount
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', config.theme);
   }, [config.theme])
 
   const initGame = useCallback(() => {
-    setPracticeText(getRandomText(config.mode === 'words' ? 25 : 80, config.language))
+    // If ghost mode is ON and we have a valid ghost run for this config, USE THAT EXACT TEXT.
+    // Otherwise, generate new random text based on current difficulty/language.
+    if (config.ghostMode) {
+      const bestRun = getBestGhostRun();
+      if (bestRun && bestRun.textUsed) {
+        setCurrentText(bestRun.textUsed);
+      } else {
+        // Fallback if no ghost run exists yet for this config combo
+        setCurrentText(getRandomText(config.mode === 'words' ? 25 : 80, config.language, config.difficulty));
+      }
+    } else {
+      setCurrentText(getRandomText(config.mode === 'words' ? 25 : 80, config.language, config.difficulty));
+    }
+    
     reset()
     setIsTyping(false)
     setIsFinished(false)
     if (timerRef.current) clearInterval(timerRef.current)
-  }, [config.mode, config.language, reset])
+  }, [config.mode, config.language, config.difficulty, config.ghostMode, reset, setCurrentText, getBestGhostRun])
 
+  // Re-init when core settings change that would invalidate the current text
   useEffect(() => {
     initGame()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [initGame])
+  }, [config.mode, config.language, config.difficulty, config.ghostMode]) 
+
+  // Initial load
+  useEffect(() => {
+    initGame()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishTest = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
@@ -74,7 +91,7 @@ function App() {
   return (
     <main className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}>
       
-      <div className={`w-full max-w-5xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-10 hover:opacity-100' : 'opacity-100'}`}>
+      <div className={`w-full max-w-6xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-10 hover:opacity-100' : 'opacity-100'}`}>
         <Header />
       </div>
 
@@ -91,11 +108,14 @@ function App() {
               )}
             </div>
             
-            <TypingArea 
-              text={practiceText} 
-              onStart={handleStartTyping}
-              onFinish={finishTest}
-            />
+            {/* Only render TypingArea if we have text (prevents flash of empty box) */}
+            {currentText && (
+              <TypingArea 
+                text={currentText} 
+                onStart={handleStartTyping}
+                onFinish={finishTest}
+              />
+            )}
           </>
         )}
       </div>

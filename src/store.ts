@@ -14,6 +14,8 @@ export interface TestResult {
   date: string;
   keystrokes: KeystrokeTiming[];
   language: 'english' | 'hindi';
+  difficulty: 'easy' | 'medium' | 'hard';
+  textUsed: string; // Saved so ghost mode can replay the exact same text
 }
 
 export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
@@ -22,6 +24,7 @@ interface State {
 	config: {
 		mode: "time" | "words" | "zen";
         language: "english" | "hindi";
+        difficulty: "easy" | "medium" | "hard";
         theme: ThemeName;
 		showRealtimeStats: boolean;
 		caseSensitive: boolean;
@@ -35,6 +38,7 @@ interface State {
 		secElapsed: number;
 	};
     currentKeystrokes: KeystrokeTiming[];
+    currentText: string;
     history: TestResult[];
     isHistoryOpen: boolean;
 }
@@ -42,6 +46,7 @@ interface State {
 interface Mutation {
 	changeMode: (mode: State["config"]["mode"]) => void;
     changeLanguage: (language: State["config"]["language"]) => void;
+    changeDifficulty: (difficulty: State["config"]["difficulty"]) => void;
     changeTheme: (theme: ThemeName) => void;
 	toggleRealtimeStats: (bool?: boolean) => void;
 	toggleCaseSensitive: (bool?: boolean) => void;
@@ -50,6 +55,7 @@ interface Mutation {
     toggleHistory: (bool?: boolean) => void;
 	incrStat: (stat: keyof State["stats"]) => void;
     recordKeystroke: (charIndex: number, timestamp: number) => void;
+    setCurrentText: (text: string) => void;
 	reset: () => void;
     saveTestResult: () => void;
 }
@@ -64,6 +70,7 @@ const initialState = {
 	config: {
 		mode: "time" as const,
         language: "english" as const,
+        difficulty: "medium" as const,
         theme: "default" as const,
 		showRealtimeStats: true,
 		caseSensitive: false,
@@ -77,6 +84,7 @@ const initialState = {
 		secElapsed: 0,
 	},
     currentKeystrokes: [],
+    currentText: "",
     isHistoryOpen: false,
 };
 
@@ -88,75 +96,54 @@ const useStore = create<State & Mutation & Compute>()(
 
       changeMode: (mode) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  mode,
-                  showRealtimeStats:
-                      mode === "zen" ? false : state.config.showRealtimeStats,
-              },
+              config: { ...state.config, mode },
           })),
       changeLanguage: (language) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  language,
-              },
+              config: { ...state.config, language },
+          })),
+      changeDifficulty: (difficulty) =>
+          set((state) => ({
+              config: { ...state.config, difficulty },
           })),
       changeTheme: (theme) => {
           document.documentElement.setAttribute('data-theme', theme);
           set((state) => ({
-              config: {
-                  ...state.config,
-                  theme,
-              },
+              config: { ...state.config, theme },
           }))
       },
       toggleRealtimeStats: (bool) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  showRealtimeStats:
-                      bool === undefined ? !state.config.showRealtimeStats : bool,
-              },
+              config: { ...state.config, showRealtimeStats: bool ?? !state.config.showRealtimeStats },
           })),
       toggleCaseSensitive: (bool) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  caseSensitive: bool === undefined ? !state.config.caseSensitive : bool,
-              },
+              config: { ...state.config, caseSensitive: bool ?? !state.config.caseSensitive },
           })),
       toggleSound: (bool) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  soundEnabled: bool === undefined ? !state.config.soundEnabled : bool,
-              },
+              config: { ...state.config, soundEnabled: bool ?? !state.config.soundEnabled },
           })),
       toggleGhostMode: (bool) =>
           set((state) => ({
-              config: {
-                  ...state.config,
-                  ghostMode: bool === undefined ? !state.config.ghostMode : bool,
-              },
+              config: { ...state.config, ghostMode: bool ?? !state.config.ghostMode },
           })),
       toggleHistory: (bool) =>
           set((state) => ({
-              isHistoryOpen: bool === undefined ? !state.isHistoryOpen : bool,
+              isHistoryOpen: bool ?? !state.isHistoryOpen,
           })),
       incrStat: (stat) =>
           set((state) => ({
-              stats: {
-                  ...state.stats,
-                  [stat]: state.stats[stat] + 1,
-              },
+              stats: { ...state.stats, [stat]: state.stats[stat] + 1 },
           })),
       recordKeystroke: (charIndex, timestamp) => 
           set((state) => ({
               currentKeystrokes: [...state.currentKeystrokes, { charIndex, timestamp }]
           })),
+      setCurrentText: (text) => 
+          set(() => ({ currentText: text })),
       reset: () =>
-          set((state) => ({
+          set(() => ({
               stats: initialState.stats,
               currentKeystrokes: [],
           })),
@@ -171,8 +158,10 @@ const useStore = create<State & Mutation & Compute>()(
               accuracy: state.calcAccuracy(),
               mode: state.config.mode,
               language: state.config.language,
+              difficulty: state.config.difficulty,
               date: new Date().toISOString(),
-              keystrokes: state.currentKeystrokes
+              keystrokes: state.currentKeystrokes,
+              textUsed: state.currentText
           };
           
           set((state) => ({
@@ -192,7 +181,13 @@ const useStore = create<State & Mutation & Compute>()(
 
       getBestGhostRun: () => {
           const state = get();
-          const validRuns = state.history.filter(h => h.mode === state.config.mode && h.language === state.config.language && h.keystrokes?.length > 0);
+          const validRuns = state.history.filter(h => 
+              h.mode === state.config.mode && 
+              h.language === state.config.language && 
+              h.difficulty === state.config.difficulty &&
+              h.keystrokes?.length > 0 &&
+              h.textUsed?.length > 0
+          );
           if (validRuns.length === 0) return null;
           return validRuns.reduce((best, curr) => curr.wpm > best.wpm ? curr : best, validRuns[0]);
       }
