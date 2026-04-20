@@ -114,6 +114,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       let currentIdx = 0
 
       const runGhost = () => {
+        // Rebuild the old run by advancing the caret using the original keystroke timestamps.
         const now = Date.now() - testStartTime.current
 
         while (
@@ -153,6 +154,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
   }, [testStartTime.current, ghostRun, wordGraphemes])
 
   useEffect(() => {
+    // Every new prompt should start from a clean slate, then refocus the typing box for the next run.
     setCurrWordIndex(0)
     setCurrLetterIndex(0)
     setTypos(new Set())
@@ -200,18 +202,11 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
     // Get the top offset of the current word relative to the container
     const offsetTop = activeWordEl.offsetTop
 
-    // We want to keep the active line either at the top (0) or second line (approx ~48px)
-    // If the offset exceeds a certain threshold (meaning we've wrapped to line 3+), we scroll up.
-    // Line height is approximately 48px to 52px depending on font. Let's trigger scroll at > 60px.
+    // Keep the active line near the top so the user always types against a stable reading window.
     if (offsetTop > 60) {
-      // Scroll exactly enough to bring the current line up by one line's height
-      // Because of flex-wrap and responsive widths, calculating exactly one line is best done by checking offset diffs,
-      // but simply scrolling up by the amount it exceeds line 1 works perfectly.
-      // We set the negative translation to keep the current word visible near the top.
-      // Subtracting a small buffer (like 8px) ensures the active word is comfortably visible.
       setTranslateY(offsetTop - 8)
     } else if (offsetTop < 10 && translateY > 0) {
-      // Handle backspacing up a line - if we hit the top visually but are scrolled down, scroll back up.
+      // Backspacing can move us back up a line, so nudge the container upward again when that happens.
       setTranslateY(Math.max(0, translateY - 48))
     }
   }, [currWordIndex, translateY])

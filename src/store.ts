@@ -123,6 +123,7 @@ const useStore = create<State & Mutation & Compute>()(
               config: { ...state.config, difficulty },
           })),
       changeTheme: (theme) => {
+          // Keep the DOM theme in sync immediately so the UI updates before React finishes rerendering.
           document.documentElement.setAttribute('data-theme', theme);
           set((state) => ({
               config: { ...state.config, theme },
@@ -182,6 +183,7 @@ const useStore = create<State & Mutation & Compute>()(
           
       saveTestResult: () => {
           const state = get();
+          // Very short runs are usually accidental key presses, so we skip saving them.
           if (state.stats.typedCharCount < 10) return; 
           
           const newResult: TestResult = {
@@ -230,6 +232,7 @@ const useStore = create<State & Mutation & Compute>()(
           const targetWords = state.config.wordsAmount;
           const targetWordsU = state.config.wordUnit;
           
+          // Ghost mode only compares runs that used the same settings, otherwise the replay would be misleading.
           const validRuns = state.history.filter(h => 
               h.mode === state.config.mode && 
               h.language === state.config.language && 
@@ -248,6 +251,7 @@ const useStore = create<State & Mutation & Compute>()(
     }),
     {
       name: 'donkey-type-storage',
+            // Persist the user-facing settings and history, but keep the live test state ephemeral.
       partialize: (state) => ({ 
           config: state.config,
           history: state.history 

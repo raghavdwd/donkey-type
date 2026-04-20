@@ -28,7 +28,7 @@ function App() {
   }, [config.theme])
 
   const initGame = useCallback(() => {
-    // Determine how many words to generate based on mode and options
+    // Time mode needs a bigger buffer than the visible target so the text never runs out mid-test.
     let generateWordCount = 200 // Default buffer for time mode
     if (config.mode === 'words') {
       if (config.wordUnit === 'words') {
@@ -104,6 +104,7 @@ function App() {
     if (!isTyping && !isFinished && !isHistoryOpen) {
       setIsTyping(true)
 
+      // The timer ticks once per second and owns the countdown for time mode.
       timerRef.current = window.setInterval(() => {
         useStore.setState((state) => {
           // Time mode logic
@@ -117,6 +118,7 @@ function App() {
             const targetSeconds = state.config.timeAmount * multiplier
 
             if (state.stats.secElapsed >= targetSeconds) {
+              // Defer the finish call so the state update above settles cleanly first.
               setTimeout(() => {
                 finishTest()
               }, 0)
@@ -134,6 +136,7 @@ function App() {
   // Subscribes to typing progress to end 'words' or 'chars' mode early if needed
   useEffect(() => {
     if (isTyping && config.mode === 'words') {
+      // In words mode, either the word quota or the character quota can end the test first.
       if (
         config.wordUnit === 'chars' &&
         stats.typedCharCount >= config.wordsAmount

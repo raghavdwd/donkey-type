@@ -49,10 +49,12 @@ export default function Header() {
   )
 
   useEffect(() => {
+    // Keep the local input field in sync when the global setting changes elsewhere.
     setLocalTimeAmount(config.timeAmount.toString())
   }, [config.timeAmount])
 
   useEffect(() => {
+    // Same idea for word count: the header should reflect store state, not drift from it.
     setLocalWordsAmount(config.wordsAmount.toString())
   }, [config.wordsAmount])
 
@@ -73,6 +75,7 @@ export default function Header() {
     if (!isNaN(val) && val > 0) {
       setTimeAmount(val)
     } else {
+      // Invalid input should snap back to the last good value instead of leaving a broken field behind.
       setLocalTimeAmount(config.timeAmount.toString())
     }
   }
@@ -82,6 +85,7 @@ export default function Header() {
     if (!isNaN(val) && val > 0) {
       setWordsAmount(val)
     } else {
+      // Keep the words control honest the same way we do for time.
       setLocalWordsAmount(config.wordsAmount.toString())
     }
   }
