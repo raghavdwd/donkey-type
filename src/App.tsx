@@ -3,8 +3,8 @@ import TypingArea from './components/TypingArea'
 import Header from './components/Header'
 import StatsPanel from './components/StatsPanel'
 import HistoryModal from './components/HistoryModal'
-import { getRandomText } from './data'
 import useStore from './store'
+import { getRandomWords, onWordsLoaded } from './lib/word-list'
 
 function App() {
   const [isTyping, setIsTyping] = useState(false)
@@ -45,12 +45,20 @@ function App() {
         setCurrentText(bestRun.textUsed)
       } else {
         setCurrentText(
-          getRandomText(generateWordCount, config.language, config.difficulty),
+          getRandomWords(
+            generateWordCount,
+            config.difficulty,
+            config.language,
+          ).join(' '),
         )
       }
     } else {
       setCurrentText(
-        getRandomText(generateWordCount, config.language, config.difficulty),
+        getRandomWords(
+          generateWordCount,
+          config.difficulty,
+          config.language,
+        ).join(' '),
       )
     }
 
@@ -89,8 +97,10 @@ function App() {
   ])
 
   useEffect(() => {
-    initGame()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    onWordsLoaded(() => {
+      initGame()
+    })
+  }, [initGame])
 
   const finishTest = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)

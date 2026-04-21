@@ -64,7 +64,7 @@ const TimeWordsConfigModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold font-mono text-text mb-4">
-          Test Configuration
+          Time/Words Configuration
         </h2>
         <div className="flex gap-4 mb-6 border-b border-neutral-800">
           <button
