@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Keyboard,
-  Timer,
-  AlignLeft,
-  Volume2,
-  VolumeX,
-  Ghost,
   History,
   Languages,
   Palette,
   Gauge,
-  Wind,
+  Settings,
+  Volume2,
+  VolumeX,
+  Ghost,
 } from 'lucide-react'
 import useStore from '../store'
 import type { ThemeName } from '../store'
 import clsx from 'clsx'
+import TimeWordsConfigModal from './TimeWordsConfigModal'
 
 const THEMES: ThemeName[] = [
   'default',
@@ -28,35 +27,15 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 export default function Header() {
   const {
     config,
-    changeMode,
     changeLanguage,
     changeTheme,
     changeDifficulty,
-    setTimeAmount,
-    setTimeUnit,
-    setWordsAmount,
-    setWordUnit,
     toggleSound,
     toggleGhostMode,
     toggleHistory,
   } = useStore()
 
-  const [localTimeAmount, setLocalTimeAmount] = useState(
-    config.timeAmount.toString(),
-  )
-  const [localWordsAmount, setLocalWordsAmount] = useState(
-    config.wordsAmount.toString(),
-  )
-
-  useEffect(() => {
-    // Keep the local input field in sync when the global setting changes elsewhere.
-    setLocalTimeAmount(config.timeAmount.toString())
-  }, [config.timeAmount])
-
-  useEffect(() => {
-    // Same idea for word count: the header should reflect store state, not drift from it.
-    setLocalWordsAmount(config.wordsAmount.toString())
-  }, [config.wordsAmount])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleNextTheme = () => {
     const currentIndex = THEMES.indexOf(config.theme)
@@ -68,26 +47,6 @@ export default function Header() {
     const currentIndex = DIFFICULTIES.indexOf(config.difficulty)
     const nextIndex = (currentIndex + 1) % DIFFICULTIES.length
     changeDifficulty(DIFFICULTIES[nextIndex])
-  }
-
-  const handleCustomTimeSubmit = () => {
-    const val = parseInt(localTimeAmount)
-    if (!isNaN(val) && val > 0) {
-      setTimeAmount(val)
-    } else {
-      // Invalid input should snap back to the last good value instead of leaving a broken field behind.
-      setLocalTimeAmount(config.timeAmount.toString())
-    }
-  }
-
-  const handleCustomWordsSubmit = () => {
-    const val = parseInt(localWordsAmount)
-    if (!isNaN(val) && val > 0) {
-      setWordsAmount(val)
-    } else {
-      // Keep the words control honest the same way we do for time.
-      setLocalWordsAmount(config.wordsAmount.toString())
-    }
   }
 
   return (
@@ -107,177 +66,23 @@ export default function Header() {
       </div>
 
       {/* Navigation / Modes & Options */}
-      <div className="flex items-center gap-1 bg-bg-secondary p-0.5 rounded-xl border border-neutral-800/50 shadow-xl font-mono text-[13px]">
-        {/* Modes */}
-        <div className="flex items-center px-1">
-          <button
-            onClick={() => changeMode('time')}
-            className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
-              config.mode === 'time'
-                ? 'bg-brand text-bg shadow-sm font-bold'
-                : 'text-text-muted hover:text-text hover:bg-bg/40',
-            )}
-          >
-            <Timer className="w-3.5 h-3.5" /> time
-          </button>
-          <button
-            onClick={() => changeMode('words')}
-            className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
-              config.mode === 'words'
-                ? 'bg-brand text-bg shadow-sm font-bold'
-                : 'text-text-muted hover:text-text hover:bg-bg/40',
-            )}
-          >
-            <AlignLeft className="w-3.5 h-3.5" /> words
-          </button>
-          <button
-            onClick={() => changeMode('zen')}
-            className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer',
-              config.mode === 'zen'
-                ? 'bg-brand text-bg shadow-sm font-bold'
-                : 'text-text-muted hover:text-text hover:bg-bg/40',
-            )}
-          >
-            <Wind className="w-3.5 h-3.5" /> zen
-          </button>
-        </div>
-
-        <div className="w-px h-5 bg-neutral-800/80 mx-1" />
-
-        {/* Dynamic Controls based on selected Mode */}
-        <div className="flex items-center gap-1.5 px-2">
-          {config.mode === 'time' && (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
-              <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
-                {[5, 10, 15].map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => {
-                      setTimeAmount(amount)
-                      setLocalTimeAmount(amount.toString())
-                    }}
-                    className={clsx(
-                      'px-2 py-0.5 rounded transition-all duration-200 text-[11px] font-bold',
-                      config.timeAmount === amount
-                        ? 'bg-brand text-bg shadow-sm scale-110'
-                        : 'text-text-muted hover:text-text hover:bg-bg/50',
-                    )}
-                  >
-                    {amount}
-                  </button>
-                ))}
-              </div>
-              <div className="w-px h-4 bg-neutral-800/50" />
-              <div className="flex items-center gap-1">
-                <div className="relative group">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="custom"
-                    value={localTimeAmount}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '')
-                      setLocalTimeAmount(val)
-                    }}
-                    onBlur={handleCustomTimeSubmit}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleCustomTimeSubmit()
-                        ;(e.target as HTMLInputElement).blur()
-                      }
-                    }}
-                    className="w-10 bg-bg/50 text-text px-1 py-1 rounded-md border border-neutral-800/50 outline-none focus:border-brand/50 transition-all text-center group-hover:bg-bg text-[11px] placeholder:text-text-muted/40"
-                  />
-                </div>
-                <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
-                  {(['s', 'm', 'h'] as const).map((unit) => (
-                    <button
-                      key={unit}
-                      onClick={() => setTimeUnit(unit)}
-                      className={clsx(
-                        'px-1.5 py-0.5 rounded transition-all duration-200 uppercase text-[10px] font-bold',
-                        config.timeUnit === unit
-                          ? 'bg-neutral-600 text-text shadow-sm'
-                          : 'text-text-muted/60 hover:text-text hover:bg-bg/50',
-                      )}
-                    >
-                      {unit}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {config.mode === 'words' && (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
-              <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
-                {[400, 600].map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => {
-                      setWordsAmount(amount)
-                      setLocalWordsAmount(amount.toString())
-                    }}
-                    className={clsx(
-                      'px-2 py-0.5 rounded transition-all duration-200 text-[11px] font-bold',
-                      config.wordsAmount === amount
-                        ? 'bg-brand text-bg shadow-sm scale-110'
-                        : 'text-text-muted hover:text-text hover:bg-bg/50',
-                    )}
-                  >
-                    {amount}
-                  </button>
-                ))}
-              </div>
-              <div className="w-px h-4 bg-neutral-800/50" />
-              <div className="flex items-center gap-1">
-                <div className="relative group">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="custom"
-                    value={localWordsAmount}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '')
-                      setLocalWordsAmount(val)
-                    }}
-                    onBlur={handleCustomWordsSubmit}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleCustomWordsSubmit()
-                        ;(e.target as HTMLInputElement).blur()
-                      }
-                    }}
-                    className="w-10 bg-bg/50 text-text px-1 py-1 rounded-md border border-neutral-800/50 outline-none focus:border-brand/50 transition-all text-center group-hover:bg-bg text-[11px] placeholder:text-text-muted/40"
-                  />
-                </div>
-                <div className="flex items-center bg-bg/40 rounded-md p-0.5 border border-neutral-800/50">
-                  {(['words', 'chars'] as const).map((unit) => (
-                    <button
-                      key={unit}
-                      onClick={() => setWordUnit(unit)}
-                      className={clsx(
-                        'px-1.5 py-0.5 rounded transition-all duration-200 capitalize text-[10px] font-bold',
-                        config.wordUnit === unit
-                          ? 'bg-neutral-600 text-text shadow-sm'
-                          : 'text-text-muted/60 hover:text-text hover:bg-bg/50',
-                      )}
-                    >
-                      {unit === 'words' ? 'w' : 'c'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
+          title="Configure Time/Words"
+        >
+          <Settings className="w-5 h-5" />
+          <span className="hidden lg:inline uppercase font-bold tracking-wider">
+            Configure Time/Words
+          </span>
+        </button>
       </div>
+
+      <TimeWordsConfigModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {/* Settings / Toggles */}
       <div className="flex items-center bg-bg-secondary/50 p-1 rounded-xl border border-neutral-800/50 shadow-md">
