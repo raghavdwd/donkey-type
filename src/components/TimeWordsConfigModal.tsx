@@ -9,7 +9,7 @@ const TimeWordsConfigModal = ({
   onClose: () => void
 }) => {
   if (!isOpen) return null
-  const { config, setTimeAmount, setWordsAmount, setTimeUnit, setWordUnit } =
+  const { config, changeMode, setTimeAmount, setWordsAmount, setTimeUnit, setWordUnit } =
     useStore()
   const [selectedTab, setSelectedTab] = React.useState<'time' | 'words'>(
     config.mode === 'words' ? 'words' : 'time',
@@ -25,6 +25,7 @@ const TimeWordsConfigModal = ({
   const handleCustomTimeSubmit = () => {
     const val = parseInt(localTimeAmount)
     if (!isNaN(val) && val > 0) {
+      changeMode('time')
       setTimeAmount(val)
       onClose()
     } else {
@@ -35,6 +36,7 @@ const TimeWordsConfigModal = ({
   const handleCustomWordsSubmit = () => {
     const val = parseInt(localWordsAmount)
     if (!isNaN(val) && val > 0) {
+      changeMode('words')
       setWordsAmount(val)
       onClose()
     } else {
@@ -43,12 +45,14 @@ const TimeWordsConfigModal = ({
   }
 
   const handlePresetTime = (amount: number) => {
+    changeMode('time')
     setTimeAmount(amount)
     setLocalTimeAmount(amount.toString())
     onClose()
   }
 
   const handlePresetWords = (amount: number) => {
+    changeMode('words')
     setWordsAmount(amount)
     setLocalWordsAmount(amount.toString())
     onClose()
