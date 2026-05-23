@@ -9,6 +9,7 @@ interface KeystrokeTiming {
 export interface TestResult {
   id: string;
   wpm: number;
+  rawWpm?: number;
   accuracy: number;
   mode: string;
   date: string;
@@ -20,6 +21,7 @@ export interface TestResult {
   timeUnit?: 's' | 'm' | 'h';
   wordsAmount?: number;
   wordUnit?: 'words' | 'chars';
+  chartData?: { time: number; wpm: number; raw: number; errors: number }[];
 }
 
 export type ThemeName = 'default' | 'nord' | 'matcha' | 'cyberpunk' | 'midnight';
@@ -183,12 +185,33 @@ const useStore = create<State & Mutation & Compute>()(
           
       saveTestResult: () => {
           const state = get();
-          // Very short runs are usually accidental key presses, so we skip saving them.
           if (state.stats.typedCharCount < 10) return; 
           
+          const keystrokes = state.currentKeystrokes;
+          if (keystrokes.length === 0) return;
+          
+          const totalSeconds = Math.ceil(keystrokes[keystrokes.length - 1].timestamp / 1000);
+          const chartData = [];
+          
+          for (let s = 1; s <= totalSeconds; s++) {
+              const upToNow = keystrokes.filter(k => k.timestamp <= s * 1000);
+              const charCount = upToNow.length;
+              const rawWpm = Math.round((charCount / 5) / (s / 60));
+              const accuracyRatio = state.calcAccuracy() / 100;
+              const wpm = Math.round(rawWpm * accuracyRatio);
+
+              chartData.push({
+                  time: s,
+                  wpm,
+                  raw: rawWpm,
+                  errors: 0
+              });
+          }
+
           const newResult: TestResult = {
               id: Date.now().toString(),
               wpm: state.calcWPM(),
+              rawWpm: Math.round((state.stats.typedCharCount / 5) / (state.stats.secElapsed / 60)),
               accuracy: state.calcAccuracy(),
               mode: state.config.mode,
               language: state.config.language,
@@ -199,7 +222,8 @@ const useStore = create<State & Mutation & Compute>()(
               wordUnit: state.config.wordUnit,
               date: new Date().toISOString(),
               keystrokes: state.currentKeystrokes,
-              textUsed: state.currentText
+              textUsed: state.currentText,
+              chartData
           };
           
           set((state) => ({
@@ -232,12 +256,10 @@ const useStore = create<State & Mutation & Compute>()(
           const targetWords = state.config.wordsAmount;
           const targetWordsU = state.config.wordUnit;
           
-          // Ghost mode only compares runs that used the same settings, otherwise the replay would be misleading.
           const validRuns = state.history.filter(h => 
               h.mode === state.config.mode && 
               h.language === state.config.language && 
               h.difficulty === state.config.difficulty &&
-              // Enforce same target goals and units for a fair ghost race
               (state.config.mode === 'time' 
                 ? ((h.timeAmount || 30) === targetTime && (h.timeUnit || 's') === targetTimeU) 
                 : ((h.wordsAmount || 25) === targetWords && (h.wordUnit || 'words') === targetWordsU)
@@ -251,7 +273,6 @@ const useStore = create<State & Mutation & Compute>()(
     }),
     {
       name: 'donkey-type-storage',
-            // Persist the user-facing settings and history, but keep the live test state ephemeral.
       partialize: (state) => ({ 
           config: state.config,
           history: state.history 
