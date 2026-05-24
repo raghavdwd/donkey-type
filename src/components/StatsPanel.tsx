@@ -20,7 +20,8 @@ export default function StatsPanel({ onRestart }: { onRestart: () => void }) {
     return Array.from({ length: 10 }).map((_, i) => ({
       time: i + 1,
       wpm: Math.max(0, wpm - 10 + Math.random() * 20),
-      raw: Math.max(0, wpm + Math.random() * 10)
+      raw: Math.max(0, wpm + Math.random() * 10),
+      errors: 0
     }))
   }, [lastResult, wpm])
 

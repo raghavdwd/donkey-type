@@ -190,10 +190,12 @@ const useStore = create<State & Mutation & Compute>()(
           const keystrokes = state.currentKeystrokes;
           if (keystrokes.length === 0) return;
           
-          const totalSeconds = Math.ceil(keystrokes[keystrokes.length - 1].timestamp / 1000);
+          // Use actual elapsed time or configured time for the chart to avoid truncating idle tails
+          const lastKeystrokeTime = Math.ceil(keystrokes[keystrokes.length - 1].timestamp / 1000);
+          const testDuration = state.stats.secElapsed || lastKeystrokeTime;
           const chartData = [];
           
-          for (let s = 1; s <= totalSeconds; s++) {
+          for (let s = 1; s <= testDuration; s++) {
               const upToNow = keystrokes.filter(k => k.timestamp <= s * 1000);
               const charCount = upToNow.length;
               const rawWpm = Math.round((charCount / 5) / (s / 60));
