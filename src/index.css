@@ -1,6 +1,60 @@
+/*
+ * index.css
+ * 
+ * This is the main stylesheet for the entire typing test application.
+ * We are using Tailwind CSS v4 which is the newest version of Tailwind.
+ * Tailwind is a "utility-first" CSS framework which means instead of writing
+ * custom CSS classes for everything, we use small utility classes directly
+ * in our HTML/JSX like "p-4", "text-center", "bg-blue-500", etc.
+ * 
+ * We also have our own custom CSS variables for theming which lets us switch
+ * between 5 different color themes (default, nord, matcha, cyberpunk, midnight).
+ * CSS variables are super useful because when we change the value of a variable,
+ * everywhere that variable is used automatically updates.
+ * This is how we do the theme switching - we just change which CSS variables
+ * are active and all the colors update instantly.
+ */
+
+/*
+ * Import Google Fonts for our app's typography.
+ * We use two fonts:
+ * 1. JetBrains Mono - This is a monospace font (all characters have the same width)
+ *    which is perfect for typing tests because monospace fonts make it easy to
+ *    see exactly where each character is positioned. Programmers love monospace fonts.
+ * 2. Inter - This is a clean sans-serif font that we use for headings and UI elements.
+ *    It was designed by Rasmus Andersson and is very popular in modern web design.
+ */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Inter:wght@100..900&display=swap');
+
+/*
+ * This is how we import Tailwind CSS v4.
+ * The @import "tailwindcss" directive includes all of Tailwind's utility classes.
+ * Tailwind v4 uses this new import syntax instead of the old @tailwind directives.
+ * It's simpler and works better with modern CSS.
+ */
 @import "tailwindcss";
 
+/*
+ * THEME: Default (the "default" theme)
+ * 
+ * This is the default color scheme that users see when they first open the app.
+ * It has a dark background (#111111 which is almost black) with yellow accent colors.
+ * The yellow brand color (#eab308 is the same as Tailwind's yellow-500) gives it
+ * a nice contrast against the dark background.
+ * 
+ * CSS variables defined here:
+ * --brand: The main accent color used for important elements like the caret, buttons, stats
+ * --brand-light: A lighter version of the brand color used for hover states and highlights
+ * --bg: The main background color of the app
+ * --bg-secondary: A slightly lighter background used for cards, panels, and containers
+ * --text: The main text color (nearly white for dark themes)
+ * --text-muted: A dimmer text color for less important information
+ * --error: Red color used to show typing mistakes
+ * --success: Green color used for correct typing and positive indicators
+ * 
+ * We use :root and [data-theme="default"] together so that the default theme
+ * applies even if no data-theme attribute is set on the HTML element.
+ */
 :root, [data-theme="default"] {
   --brand: #eab308;
   --brand-light: #fef08a;
@@ -12,6 +66,15 @@
   --success: #10b981;
 }
 
+/*
+ * THEME: Nord
+ * 
+ * This theme is inspired by the popular Nord color scheme that is widely used
+ * in code editors and terminal emulators. It was created by Arctic Ice Studio.
+ * Nord uses a palette of cold, arctic-inspired colors with blues and grays.
+ * The brand color is a soft blue (#88c0d0) which is very easy on the eyes.
+ * This is a dark theme with blue-ish gray backgrounds.
+ */
 [data-theme="nord"] {
   --brand: #88c0d0;
   --brand-light: #8fbcbb;
@@ -23,6 +86,14 @@
   --success: #a3be8c;
 }
 
+/*
+ * THEME: Matcha
+ * 
+ * Matcha is our only light theme. It has a warm, earthy color palette inspired by
+ * matcha green tea. The background is a warm off-white (#f4f0eb) and the accent color
+ * is a muted green (#7ca66f). This theme is great for people who prefer light mode
+ * or who find dark themes hard to read in bright environments.
+ */
 [data-theme="matcha"] {
   --brand: #7ca66f;
   --brand-light: #9dbd92;
@@ -34,6 +105,15 @@
   --success: #7ca66f;
 }
 
+/*
+ * THEME: Cyberpunk
+ * 
+ * This is a flashy, neon-themed dark theme inspired by the cyberpunk genre.
+ * It features a very dark blue background (#000b18 like a night sky) with
+ * bright yellow (#fcee0a) and neon green (#00ff9f) accent colors.
+ * The error color is a bright red (#ff003c) that really pops.
+ * This theme is for people who want their typing test to look like a hacker movie.
+ */
 [data-theme="cyberpunk"] {
   --brand: #fcee0a;
   --brand-light: #00ff9f;
@@ -45,6 +125,14 @@
   --success: #00ff9f;
 }
 
+/*
+ * THEME: Midnight
+ * 
+ * Midnight is a purple-themed dark theme. It uses a deep navy blue background
+ * (#0f172a which is the same as Tailwind's slate-900) with violet/purple accents.
+ * The brand color is a soft purple (#a78bfa) and the error color is a vibrant pink-red.
+ * This gives the theme a calm, luxurious feel.
+ */
 [data-theme="midnight"] {
   --brand: #a78bfa;
   --brand-light: #c4b5fd;
@@ -56,6 +144,40 @@
   --success: #10b981;
 }
 
+/*
+ * THEME: Rose
+ * 
+ * Rose is a warm, moody dark theme with pink-coral accent colors.
+ * The background is a deep rosewood (#1a0f14) that gives a romantic, cozy feel
+ * without sacrificing readability. The brand color is a vibrant pink (#f472b6)
+ * that pops beautifully against the dark backdrop. This fills the pink/rose
+ * gap in the theme lineup and offers a warmer alternative to the cooler themes.
+ */
+[data-theme="rose"] {
+  --brand: #f472b6;
+  --brand-light: #fda4af;
+  --bg: #1a0f14;
+  --bg-secondary: #2a1a20;
+  --text: #fff1f2;
+  --text-muted: #9f6a7a;
+  --error: #be123c;
+  --success: #10b981;
+}
+
+/*
+ * @theme block (Tailwind CSS v4 custom theme configuration)
+ * 
+ * This is where we connect our CSS custom properties (variables) to Tailwind's
+ * theme system. By defining these color mappings, we can use Tailwind utility
+ * classes like "bg-bg", "text-brand", "border-bg-secondary", etc. in our JSX.
+ * 
+ * We also set our font families here:
+ * --font-mono: JetBrains Mono for monospace text (typing area, code-like elements)
+ * --font-sans: Inter for regular text and UI elements
+ * 
+ * Tailwind v4 uses the @theme directive instead of the old tailwind.config.js file.
+ * This is a much cleaner way to define custom theme values.
+ */
 @theme {
   --font-mono: 'JetBrains Mono', monospace;
   --font-sans: 'Inter', sans-serif;
@@ -70,28 +192,55 @@
   --color-success: var(--success);
 }
 
+/*
+ * Body styles
+ * 
+ * We apply the background color and text color to the body element directly
+ * so that the whole page uses our theme colors. We hide the overflow because
+ * we don't want the page to scroll - everything should fit in the viewport.
+ * The transition property makes theme switching smooth and animated.
+ */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  overflow: hidden; 
+  overflow: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/*
+ * Custom scrollbar styles for WebKit browsers (Chrome, Safari, Edge)
+ * 
+ * We style the scrollbar to match our dark theme instead of using the default
+ * browser scrollbar which would look out of place. The scrollbar is narrow (8px),
+ * has a dark track and a slightly lighter thumb that rounds at the edges.
+ * On hover, the thumb becomes a bit more visible by using the text-muted color.
+ * Firefox uses a different syntax (scrollbar-width, scrollbar-color) but we
+ * are only targeting WebKit browsers here because that's what most people use.
+ */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg); 
+  background: var(--color-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-bg-secondary); 
+  background: var(--color-bg-secondary);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted); 
+  background: var(--color-text-muted);
 }
 
+/*
+ * Blink animation for the typing cursor (caret)
+ * 
+ * This is a simple keyframe animation that makes the cursor blink on and off.
+ * It's a "step-end" animation which means it snaps between states instead of
+ * fading smoothly. This gives it that classic terminal cursor feel.
+ * The animation cycles every 1 second (0.5 seconds visible, 0.5 seconds hidden).
+ * We apply this to the cursor element using the "animate-blink" class.
+ */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -101,6 +250,12 @@ body {
   animation: blink 1s step-end infinite;
 }
 
+/*
+ * When the user is actively typing, we hide the mouse cursor.
+ * This is because the blinking caret serves as our cursor and the mouse pointer
+ * would just be distracting. The "typing-active" class is added to the main
+ * container when the user starts typing and removed when they stop.
+ */
 .typing-active {
   cursor: none;
 }
