@@ -26,6 +26,7 @@
 import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import clsx from 'clsx'
 import useStore from '../store'
+import { playKeySound } from '../lib/audio'
 
 /*
  * IProps interface
@@ -645,7 +646,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       /*
        * Play the correct keystroke sound (not the error sound).
        */
-      playSyntheticSound()
+      playKeySound(e.nativeEvent.code)
       if (currLetterIndex > 0) {
         /*
          * Go back one character in the current word.
@@ -690,7 +691,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       /*
        * Play the correct sound for advancing to the next word.
        */
-      playSyntheticSound()
+      playKeySound(e.nativeEvent.code)
 
       /*
        * If the cursor is at position 0 (nothing typed yet), reject the space.
@@ -787,7 +788,7 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
           /*
            * Play the correct sound.
            */
-          playSyntheticSound()
+          playKeySound(e.nativeEvent.code)
         }
 
         /*

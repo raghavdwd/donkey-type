@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../lib/utils'
+import { registerKeySoundPlayer } from '../../lib/audio'
 import {
   IconArrowNarrowLeft,
   IconBrightnessDown,
@@ -219,6 +220,12 @@ function KeyboardProvider({
     },
     [enableSound],
   )
+
+  useEffect(() => {
+    const player = enableSound ? (code: string) => playSound('down', code) : null
+    registerKeySoundPlayer(player)
+    return () => registerKeySoundPlayer(null)
+  }, [playSound, enableSound])
 
   const emitKeyEvent = useCallback(
     (phase: KeyboardEventPhase, code: string, source: KeyboardEventSource) => {
