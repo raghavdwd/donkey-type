@@ -2,7 +2,7 @@
 
 A gorgeous, highly-customizable, minimalist typing test application built with React, Zustand, and TailwindCSS. It focuses on fluid UX, performance, and aesthetic design.
 
-![DonkeyType Demo](./public/og-image.png)
+![Screenshot](public/og-image.png)
 
 ## ✨ Features
 

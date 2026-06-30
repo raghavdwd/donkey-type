@@ -1,18 +1,18 @@
 /*
  * TimeWordsConfigModal.tsx
- * 
+ *
  * This modal allows users to configure the parameters for time-based and
  * word-based typing tests. It provides:
- * 
+ *
  * 1. Two tabs: "Time Settings" and "Words Settings" to switch between modes
  * 2. Preset buttons for common configurations
  * 3. Custom input fields for specifying exact amounts
  * 4. Unit selectors for choosing seconds/minutes/hours or words/characters
- * 
+ *
  * The modal is controlled by the isOpen prop from the parent component (Header.tsx).
  * When the user makes a selection, the corresponding store actions are called
  * and the modal closes.
- * 
+ *
  * This component uses local state for the tab selection and input field values
  * to avoid writing to the store until the user explicitly applies their choice.
  */
@@ -22,7 +22,7 @@ import useStore from '../store'
 
 /*
  * TimeWordsConfigModal component
- * 
+ *
  * @param isOpen - Whether the modal is visible (controlled by Header.tsx)
  * @param onClose - Callback to close the modal (from Header.tsx)
  */
@@ -41,7 +41,7 @@ const TimeWordsConfigModal = ({
 
   /*
    * Read the current configuration and update actions from the store.
-   * 
+   *
    * config: Current mode, time/word amounts, and units
    * changeMode: Switch between 'time', 'words', or 'zen'
    * setTimeAmount: Update the time test duration
@@ -49,8 +49,14 @@ const TimeWordsConfigModal = ({
    * setTimeUnit: Change between seconds, minutes, hours
    * setWordUnit: Change between words or characters
    */
-  const { config, changeMode, setTimeAmount, setWordsAmount, setTimeUnit, setWordUnit } =
-    useStore()
+  const {
+    config,
+    changeMode,
+    setTimeAmount,
+    setWordsAmount,
+    setTimeUnit,
+    setWordUnit,
+  } = useStore()
 
   /*
    * Local state for the currently selected tab.
@@ -77,10 +83,10 @@ const TimeWordsConfigModal = ({
 
   /*
    * handleCustomTimeSubmit
-   * 
+   *
    * Validates and applies the custom time amount.
    * Called when the user clicks "Apply Custom Time" or presses Enter.
-   * 
+   *
    * Steps:
    * 1. Parse the input string as an integer
    * 2. Validate it's a positive number
@@ -108,7 +114,7 @@ const TimeWordsConfigModal = ({
 
   /*
    * handleCustomWordsSubmit
-   * 
+   *
    * Same as handleCustomTimeSubmit but for word count.
    * Validates and applies the custom words/characters amount.
    */
@@ -125,10 +131,10 @@ const TimeWordsConfigModal = ({
 
   /*
    * handlePresetTime
-   * 
+   *
    * Handles clicking a preset time button (15, 30, 60, 120).
    * Immediately applies the preset and closes the modal.
-   * 
+   *
    * @param amount - The preset time amount (e.g., 15, 30, 60, 120)
    */
   const handlePresetTime = (amount: number) => {
@@ -140,10 +146,10 @@ const TimeWordsConfigModal = ({
 
   /*
    * handlePresetWords
-   * 
+   *
    * Handles clicking a preset words button (10, 25, 50, 100).
    * Immediately applies the preset and closes the modal.
-   * 
+   *
    * @param amount - The preset word count (e.g., 10, 25, 50, 100)
    */
   const handlePresetWords = (amount: number) => {
@@ -157,11 +163,11 @@ const TimeWordsConfigModal = ({
    * ============================================================
    * RENDER
    * ============================================================
-   * 
+   *
    * The modal renders as a fixed overlay on top of everything.
    * Clicking the backdrop (the outer div) closes the modal.
    * Clicking the inner modal content does NOT close it (stopPropagation).
-   * 
+   *
    * Layout:
    * - Backdrop (full screen, dark translucent, click to close)
    *   - Modal (centered, max-w-md, rounded corners)
@@ -237,14 +243,14 @@ const TimeWordsConfigModal = ({
         <div className="min-h-35">
           {/*
            * TIME SETTINGS TAB
-           * 
+           *
            * Shows when selectedTab === 'time'.
            * Contains:
            * 1. Preset buttons: 15s, 30s, 60s, 120s
            * 2. Custom time input field
            * 3. Unit selector (seconds, minutes, hours)
            * 4. "Apply Custom Time" button
-           * 
+           *
            * The preset button matching the current config is highlighted.
            */}
           {selectedTab === 'time' && (
@@ -334,7 +340,7 @@ const TimeWordsConfigModal = ({
 
           {/*
            * WORDS SETTINGS TAB
-           * 
+           *
            * Shows when selectedTab === 'words'.
            * Same structure as the Time tab but for word/character count.
            * Contains:
