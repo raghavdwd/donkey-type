@@ -5,6 +5,10 @@ import StatsPanel from './components/StatsPanel'
 import HistoryModal from './components/HistoryModal'
 import useStore from './store'
 import { getRandomWords, onWordsLoaded } from './lib/word-list'
+import {
+  Keyboard,
+  type KeyboardInteractionEvent,
+} from './components/ui/keyboard'
 
 function App() {
   const [isTyping, setIsTyping] = useState(false)
@@ -12,6 +16,7 @@ function App() {
 
   const {
     config,
+    keyboard,
     stats,
     currentText,
     setCurrentText,
@@ -20,7 +25,7 @@ function App() {
     getBestGhostRun,
     calcWPM,
   } = useStore()
-
+  console.log('keyboard:', keyboard)
   const timerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -204,7 +209,9 @@ function App() {
         <Header />
       </div>
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-8 flex flex-col items-center gap-12">
+      <div
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3 w-full max-w-5xl px-8 flex flex-col items-center ${keyboard.display ? 'gap-25' : 'gap-18'}`}
+      >
         {isFinished ? (
           <StatsPanel onRestart={initGame} />
         ) : (
@@ -221,6 +228,19 @@ function App() {
                 text={currentText}
                 onStart={handleStartTyping}
                 onFinish={finishTest}
+              />
+            )}
+            {/* Keyboard is only shown when the test is active and not finished.
+             * also user can disable it in the settings.
+             */}
+            {keyboard.display && (
+              <Keyboard
+                theme={keyboard.theme}
+                enableHaptics={keyboard.enableHaptics}
+                enableSound={keyboard.enableSound}
+                onKeyEvent={(event: KeyboardInteractionEvent) => {
+                  console.log(event.code, event.phase, event.source)
+                }}
               />
             )}
           </>

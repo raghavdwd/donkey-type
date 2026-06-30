@@ -2,7 +2,7 @@
 
 A customizable typing test application built with React, Zustand, and TailwindCSS.
 
-![DonkeyType Demo](public/og-image.png)
+![Screenshot](public/og-image.png)
 
 ## Features
 
