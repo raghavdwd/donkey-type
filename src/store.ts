@@ -399,12 +399,19 @@ const useStore = create<State & Mutation & Compute>()(
           },
         })),
       toggleSound: (bool) =>
-        set((state) => ({
-          config: {
-            ...state.config,
-            soundEnabled: bool ?? !state.config.soundEnabled,
-          },
-        })),
+        set((state) => {
+          const next = bool ?? !state.config.soundEnabled
+          return {
+            config: {
+              ...state.config,
+              soundEnabled: next,
+            },
+            keyboard: {
+              ...state.keyboard,
+              enableSound: next,
+            },
+          }
+        }),
       toggleGhostMode: (bool) =>
         set((state) => ({
           config: {
