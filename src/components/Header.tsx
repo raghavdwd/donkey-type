@@ -107,7 +107,6 @@ export default function Header() {
     toggleSound,
     toggleGhostMode,
     toggleHistory,
-    keyboard,
   } = useStore()
 
   /*
