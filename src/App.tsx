@@ -5,6 +5,7 @@ import StatsPanel from './components/StatsPanel'
 import HistoryModal from './components/HistoryModal'
 import useStore from './store'
 import { getRandomWords, onWordsLoaded } from './lib/word-list'
+import { getHindiText } from './lib/hindi-text'
 import {
   Keyboard,
   type KeyboardInteractionEvent,
@@ -23,7 +24,6 @@ function App() {
     reset,
     isHistoryOpen,
     getBestGhostRun,
-    calcWPM,
   } = useStore()
   console.log('keyboard:', keyboard)
   const timerRef = useRef<number | null>(null)
@@ -32,7 +32,7 @@ function App() {
     document.documentElement.setAttribute('data-theme', config.theme)
   }, [config.theme])
 
-  const initGame = useCallback(() => {
+  const initGame = useCallback(async () => {
     // Time mode needs a bigger buffer than the visible target so the text never runs out mid-test.
     let generateWordCount = 200 // Default buffer for time mode
     if (config.mode === 'words') {
@@ -48,6 +48,9 @@ function App() {
       const bestRun = getBestGhostRun()
       if (bestRun && bestRun.textUsed) {
         setCurrentText(bestRun.textUsed)
+      } else if (config.language === 'hindi') {
+        const text = await getHindiText()
+        setCurrentText(text)
       } else {
         setCurrentText(
           getRandomWords(
@@ -57,6 +60,9 @@ function App() {
           ).join(' '),
         )
       }
+    } else if (config.language === 'hindi') {
+      const text = await getHindiText()
+      setCurrentText(text)
     } else {
       setCurrentText(
         getRandomWords(
@@ -185,44 +191,21 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [initGame])
 
-  const getTimeLeftDisplay = () => {
-    const multiplier =
-      config.timeUnit === 'h' ? 3600 : config.timeUnit === 'm' ? 60 : 1
-    const targetSeconds = config.timeAmount * multiplier
-    const left = Math.max(0, targetSeconds - stats.secElapsed)
-
-    if (config.timeUnit === 's') return `${left}s`
-    const m = Math.floor(left / 60)
-    const s = left % 60
-    if (config.timeUnit === 'm') return `${m}:${s.toString().padStart(2, '0')}`
-    const h = Math.floor(left / 3600)
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
-
   return (
     <main
       className={`h-screen w-full flex flex-col items-center bg-bg text-text selection:bg-brand/30 transition-colors duration-300 ${isTyping ? 'typing-active' : ''}`}
     >
-      <div
-        className={`w-full max-w-6xl px-8 flex flex-col h-full transition-opacity duration-500 ${isTyping ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      >
+      <div className="w-full max-w-6xl px-4 sm:px-8 flex flex-col h-full">
         <Header />
       </div>
 
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3 w-full max-w-5xl px-8 flex flex-col items-center ${keyboard.display ? 'gap-25' : 'gap-18'}`}
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3 w-full max-w-5xl px-4 sm:px-8 flex flex-col items-center ${keyboard.display ? 'gap-25' : 'gap-18'}`}
       >
         {isFinished ? (
           <StatsPanel onRestart={initGame} />
         ) : (
           <>
-            <div
-              className={`absolute -top-16 left-8 font-mono text-2xl text-brand flex gap-6 transition-all duration-300 ${config.showRealtimeStats && isTyping ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-            >
-              <span>{calcWPM()} wpm</span>
-              {config.mode === 'time' && <span>{getTimeLeftDisplay()}</span>}
-            </div>
-
             {currentText && (
               <TypingArea
                 text={currentText}
@@ -236,6 +219,7 @@ function App() {
             {keyboard.display && (
               <Keyboard
                 theme={keyboard.theme}
+                language={config.language}
                 enableHaptics={keyboard.enableHaptics}
                 enableSound={keyboard.enableSound}
                 onKeyEvent={(event: KeyboardInteractionEvent) => {

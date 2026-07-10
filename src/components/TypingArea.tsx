@@ -808,18 +808,11 @@ const TypingArea = ({ text, onStart, onFinish, ...props }: IProps) => {
       role="textbox"
       tabIndex={0}
       className={clsx(
-        'flex flex-wrap focus:outline-none relative font-mono text-3xl leading-relaxed outline-none w-full max-h-37.5 overflow-hidden',
+        'flex flex-wrap focus:outline-none relative font-mono text-3xl leading-relaxed outline-none w-full max-h-43 overflow-hidden',
         config.language === 'hindi' ? 'font-sans' : 'font-mono',
       )}
       {...props}
     >
-      {/*
-       * Words container div.
-       * This inner div uses translateY for smooth scrolling.
-       * The transition makes the scroll animation smooth and bouncy.
-       * Words are displayed with flex-wrap so they wrap naturally.
-       * gap-x-4 and gap-y-4 provide spacing between words.
-       */}
       <div
         ref={wordsContainerRef}
         className="flex flex-wrap transition-transform duration-300 ease-out w-full gap-x-4 gap-y-4"

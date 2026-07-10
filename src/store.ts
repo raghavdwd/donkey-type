@@ -104,6 +104,7 @@ export type ThemeName =
   | 'default'
   | 'nord'
   | 'matcha'
+  | 'matcha-fresh'
   | 'cyberpunk'
   | 'midnight'
   | 'rose'
@@ -167,6 +168,10 @@ interface State {
   currentKeystrokes: KeystrokeTiming[]
   currentText: string
   history: TestResult[]
+  // streak is its own persisted slice, unbounded by the 100-history cap.
+  // dayKey = local-day string (toLocaleDateString). count bumps once per day
+  // on first completed test; gap resets to 1.
+  streak: { count: number; lastDate: string | null; longest: number }
   isHistoryOpen: boolean
 }
 
@@ -267,6 +272,7 @@ const initialState = {
   },
   currentKeystrokes: [],
   currentText: '',
+  streak: { count: 0, lastDate: null, longest: 0 },
   isHistoryOpen: false,
 }
 
@@ -590,12 +596,40 @@ const useStore = create<State & Mutation & Compute>()(
         }
 
         /*
+         * Streak bump — local-day key, once per day.
+         * lastDate === today: no-op (already counted today).
+         * lastDate === yesterday: extend (count+1).
+         * else: cold reset to 1.
+         * yesterday = today - 1 day, formatted the same local way.
+         */
+        const todayKey = new Date().toLocaleDateString()
+        const yesterdayKey = new Date(
+          Date.now() - 86400000,
+        ).toLocaleDateString()
+        const prev = state.streak
+        const streak =
+          prev.lastDate === todayKey
+            ? prev
+            : prev.lastDate === yesterdayKey
+              ? {
+                  count: prev.count + 1,
+                  lastDate: todayKey,
+                  longest: Math.max(prev.longest, prev.count + 1),
+                }
+              : {
+                  count: 1,
+                  lastDate: todayKey,
+                  longest: Math.max(prev.longest, 1),
+                }
+
+        /*
          * Add the new result to the beginning of history (most recent first).
          * .slice(0, 100) ensures we never store more than 100 results.
          * This prevents the localStorage from growing too large.
          */
         set((state) => ({
           history: [newResult, ...state.history].slice(0, 100),
+          streak,
         }))
       },
 
@@ -725,6 +759,7 @@ const useStore = create<State & Mutation & Compute>()(
       partialize: (state) => ({
         config: state.config,
         history: state.history,
+        streak: state.streak,
       }),
     },
   ),

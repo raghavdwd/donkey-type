@@ -165,6 +165,27 @@
 }
 
 /*
+ * THEME: Matcha Fresh
+ * 
+ * Inspired by the original matcha theme but punched up: a brighter, more
+ * saturated matcha green (#22c55e) on a cleaner near-white background
+ * (#f7fef9 with a subtle green tint). The text is a deeper charcoal
+ * (#1a2e1a) with a green undertone so it harmonizes with the accent.
+ * Keeps the same warm, earthy character as matcha but feels more energizing
+ * and present. Success reuses the brand color to keep the palette tight.
+ */
+[data-theme="matcha-fresh"] {
+  --brand: #22c55e;
+  --brand-light: #4ade80;
+  --bg: #f7fef9;
+  --bg-secondary: #e8f5ec;
+  --text: #1a2e1a;
+  --text-muted: #6b8e6b;
+  --error: #dc2626;
+  --success: #22c55e;
+}
+
+/*
  * @theme block (Tailwind CSS v4 custom theme configuration)
  * 
  * This is where we connect our CSS custom properties (variables) to Tailwind's

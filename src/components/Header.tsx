@@ -1,376 +1,234 @@
-/*
- * Header.tsx
- *
- * This is the top navigation bar of the typing test application.
- * It contains the logo, configuration options, and various toggle buttons.
- *
- * The header includes:
- * 1. A logo section with a keyboard icon and "donkeytype" text
- * 2. A "Configure Time/Words" button that opens the configuration modal
- * 3. A settings bar with difficulty, theme, and language toggles
- * 4. Action buttons for history, ghost mode, and sound
- *
- * When the user starts typing, the entire header fades out (handled by App.tsx)
- * so there are no distractions during the test.
- */
-
-import { useState } from 'react'
-
-/*
- * We use Lucide React icons for all the iconography in the header.
- * Lucide is a popular open-source icon library with clean, consistent icons.
- * Each icon is imported as a React component that renders an SVG inline.
- *
- * Icons used:
- * Keyboard - The main logo icon
- * History - Opens the test history modal
- * Languages - Toggle between English and Hindi
- * Palette - Cycle through color themes
- * Gauge - Cycle through difficulty levels
- * Settings - Opens the config modal
- * Volume2 / VolumeX - Toggle sound on/off
- * Ghost - Toggle ghost mode on/off
- */
+import { useState, useEffect } from 'react'
 import {
   Keyboard,
   History,
   Languages,
-  Palette,
-  Gauge,
   Settings,
   Volume2,
   VolumeX,
   Ghost,
+  Flame,
+  Hourglass,
 } from 'lucide-react'
-import useStore from '../store'
-import type { ThemeName } from '../store'
-
-/*
- * clsx is a tiny utility library for conditionally joining CSS class names.
- * It's much cleaner than template literals with ternary operators.
- * For example: clsx('base', isActive && 'active', variant === 'primary' && 'primary')
- */
 import clsx from 'clsx'
-import TimeWordsConfigModal from './TimeWordsConfigModal'
-import KeyboardSettingsModal from './KeyboardSettingsModal'
+import useStore from '../store'
+import ModePill from './ModePill'
+import SegmentedDifficulty from './SegmentedDifficulty'
+import LiveStatus from './LiveStatus'
+import SettingsMenu from './SettingsMenu'
+import ThemeDropdown from './ThemeDropdown'
 
 /*
- * THEMES constant array
+ * Header
  *
- * This defines the list of available themes in the order they cycle through.
- * When the user clicks the theme button, it advances to the next theme in this array.
- * The order wraps around (after 'midnight' comes back to 'default').
- */
-const THEMES: ThemeName[] = [
-  'default',
-  'nord',
-  'matcha',
-  'cyberpunk',
-  'midnight',
-  'rose',
-]
-
-/*
- * DIFFICULTIES constant array
+ * New layout: 2 zones stacked in a single column.
  *
- * The three difficulty levels for the typing test.
- * When the user clicks the difficulty button, it cycles through these.
- * 'as const' tells TypeScript this is a readonly tuple, not a mutable array.
- */
-const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
-
-/*
- * Header component (default export)
+ *   Zone 1 — Top bar (always visible when not typing)
+ *     [logo]  [mode pill]  [language] [settings]
  *
- * This is the main header component that appears at the top of the page.
- * It reads configuration from the Zustand store and provides UI controls
- * for all the settings that persist across tests.
+ *   Zone 2 — Mode strip (fades out as user starts typing)
+ *     [difficulty] · · · [ghost] [sound] [history]
+ *
+ * The live WPM/acc/time-left readout slides into the top bar (replacing the
+ * mode pill) once typing starts, so the chrome stays present-but-quiet
+ * instead of going fully empty.
  */
 export default function Header() {
-  /*
-   * Destructure the store actions we need from the Zustand store.
-   * We only destructure what we actually use in this component.
-   *
-   * config: The current application configuration
-   * changeLanguage: Toggle between English and Hindi
-   * changeTheme: Cycle through themes
-   * changeDifficulty: Cycle through difficulties
-   * toggleSound: Enable/disable keypress sounds
-   * toggleGhostMode: Enable/disable ghost mode
-   * toggleHistory: Show/hide the history modal
-   */
   const {
     config,
-    changeLanguage,
-    changeTheme,
-    changeDifficulty,
     toggleSound,
     toggleGhostMode,
     toggleHistory,
+    stats,
+    streak,
   } = useStore()
 
-  /*
-   * Local state to track whether the Time/Words configuration modal is open.
-   * This is local state because the modal belongs to this component and
-   * doesn't need to be shared globally.
-   */
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isKeyboardModalOpen, setIsKeyboardModalOpen] = useState(false)
-  /*
-   * handleNextTheme
-   *
-   * Cycles to the next theme in the THEMES array.
-   * Uses modular arithmetic ((currentIndex + 1) % length) to wrap around
-   * when reaching the end of the array.
-   * For example: default -> nord -> matcha -> cyberpunk -> midnight -> default
-   */
-  const handleNextTheme = () => {
-    const currentIndex = THEMES.indexOf(config.theme)
-    const nextIndex = (currentIndex + 1) % THEMES.length
-    changeTheme(THEMES[nextIndex])
-  }
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const isTyping = stats.secElapsed > 0
+  const showLive = isTyping && config.showRealtimeStats
 
-  /*
-   * handleNextDifficulty
-   *
-   * Cycles to the next difficulty level.
-   * Same modular arithmetic as handleNextTheme.
-   * For example: easy -> medium -> hard -> easy
-   */
-  const handleNextDifficulty = () => {
-    const currentIndex = DIFFICULTIES.indexOf(config.difficulty)
-    const nextIndex = (currentIndex + 1) % DIFFICULTIES.length
-    changeDifficulty(DIFFICULTIES[nextIndex])
-  }
-
-  /*
-   * ============================================================
-   * RENDER
-   * ============================================================
-   */
   return (
-    <header className="w-full flex items-center justify-between py-8">
-      <div className="flex items-center gap-2 group cursor-pointer">
-        <div className="relative">
-          <Keyboard className="w-9 h-9 text-brand transition-transform duration-300 group-hover:scale-110" />
-          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-brand rounded-full border-2 border-bg animate-pulse" />
-        </div>
-        <div className="flex flex-col -gap-1">
-          <h1 className="text-3xl font-black tracking-tight text-brand font-mono hidden md:block">
-            donkey<span className="text-text">type</span>
+    <header className="w-full flex flex-col gap-3 sm:gap-4 py-4 sm:py-6">
+      {/* Zone 1 — Top bar (fades when typing) */}
+      <div
+        className={clsx(
+          'flex items-center justify-between gap-3 transition-all duration-500',
+          isTyping
+            ? 'opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden'
+            : 'opacity-100',
+        )}
+      >
+        <div className="flex items-center gap-2 shrink-0">
+          <Keyboard className="w-7 h-7 sm:w-8 sm:h-8 text-brand" />
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight font-mono">
+            <span className="text-brand">donkey</span>
+            <span className="text-text">type</span>
           </h1>
-          <div className="h-0.5 w-0 group-hover:w-full bg-brand transition-all duration-300 rounded-full" />
+        </div>
+
+        <div className="flex-1 flex justify-center min-w-0">
+          <ModePill />
+        </div>
+
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <IconToggle
+            label={config.language === 'english' ? 'en' : 'hi'}
+            active={config.language === 'hindi'}
+            activeClass="text-success bg-success/10"
+            onClick={() => {}}
+            disabled
+            title="Hindi mode coming in a future version"
+            icon={<Languages className="w-4 h-4" />}
+            showLabel
+          />
+
+          <ThemeDropdown />
+
+          <IconToggle
+            onClick={() => setIsSettingsOpen(true)}
+            title="Settings"
+            icon={<Settings className="w-4 h-4" />}
+          />
         </div>
       </div>
 
-      {/*
-       * Configure Time/Words button
-       *
-       * Opens a modal where the user can configure test parameters such as
-       * time duration (for time mode) or word count (for words mode).
-       * The modal is controlled by the isModalOpen local state.
-       */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
-          title="Configure Time/Words"
-        >
-          <Settings className="w-5 h-5" />
-          <span className="hidden lg:inline uppercase font-bold tracking-wider">
-            Configure Time/Words
-          </span>
-        </button>
-      </div>
+      {/* Zone 2 — Mode strip */}
+      <div
+        className={clsx(
+          'flex items-center justify-between gap-2 transition-all duration-500',
+          isTyping
+            ? 'opacity-0 translate-y-2 pointer-events-none h-0 overflow-hidden'
+            : 'opacity-100',
+        )}
+      >
+        <SegmentedDifficulty />
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => setIsKeyboardModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
-          title="Configure Time/Words"
-        >
-          <Keyboard className="w-5 h-5" />
-          <span className="hidden lg:inline uppercase font-bold tracking-wider">
-            Keyboard Settings
-          </span>
-        </button>
-      </div>
-      {/*
-       * Keyboard Settings modal is rendered here but only shows when isKeyboardModalOpen is true.
-       * The onClose callback sets isKeyboardModalOpen back to false.
-       */}
-      <KeyboardSettingsModal
-        isOpen={isKeyboardModalOpen}
-        onClose={() => setIsKeyboardModalOpen(false)}
-      />
-      {/*
-       * TimeWordsConfigModal is rendered here but only shows when isModalOpen is true.
-       * The onClose callback sets isModalOpen back to false.
-       */}
-      <TimeWordsConfigModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-
-      {/*
-       * Settings / Toggles bar
-       *
-       * This is the main settings area with all the toggle buttons.
-       * It has a subtle dark background with rounded corners and a border.
-       * The bar is divided into two sections separated by a vertical divider:
-       *
-       * Left side: Difficulty, Theme, and Language toggles
-       * Right side: History, Ghost Mode, and Sound buttons
-       */}
-      <div className="flex items-center bg-bg-secondary/50 p-1 rounded-xl border border-neutral-800/50 shadow-md">
-        <div className="flex items-center gap-0.5">
-          {/*
-           * Difficulty button
-           *
-           * Clicking this cycles through easy, medium, and hard.
-           * The current difficulty is displayed next to the gauge icon.
-           * On mobile screens, only the icon is shown (text is hidden with lg:inline).
-           */}
-          <button
-            onClick={handleNextDifficulty}
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
-            title={`Difficulty: ${config.difficulty}`}
-          >
-            <Gauge className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline uppercase font-bold tracking-wider">
-              {config.difficulty}
-            </span>
-          </button>
-
-          {/*
-           * Vertical divider between controls
-           */}
-          <div className="w-px h-4 bg-neutral-800 hidden sm:block mx-1" />
-
-          {/*
-           * Theme button
-           *
-           * Cycles through the 5 available themes.
-           * The current theme name is displayed next to the palette icon.
-           */}
-          <button
-            onClick={handleNextTheme}
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px] hover:bg-bg/60 text-text-muted hover:text-brand"
-            title={`Theme: ${config.theme}`}
-          >
-            <Palette className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline uppercase font-bold tracking-wider">
-              {config.theme}
-            </span>
-          </button>
-
-          <div className="w-px h-4 bg-neutral-800 hidden sm:block mx-1" />
-
-          {/*
-           * Language toggle button
-           *
-           * Toggles between English and Hindi.
-           * When Hindi is active, the button gets a green highlight
-           * (text-success bg-success/5) to indicate the language switch.
-           * This is done using clsx for conditional styling.
-           */}
-          <button
-            disabled
-            onClick={() =>
-              changeLanguage(
-                config.language === 'english' ? 'hindi' : 'english',
+        <div className="flex items-center gap-1">
+          <StreakBadge count={streak.count} lastDate={streak.lastDate} />
+          <IconToggle
+            onClick={() => toggleHistory()}
+            title="History"
+            icon={<History className="w-4 h-4" />}
+          />
+          <IconToggle
+            onClick={() => toggleGhostMode()}
+            active={config.ghostMode}
+            activeClass="text-blue-400 bg-blue-400/10"
+            title="Ghost Mode"
+            icon={<Ghost className="w-4 h-4" />}
+          />
+          <IconToggle
+            onClick={() => toggleSound()}
+            title="Sound"
+            icon={
+              config.soundEnabled ? (
+                <Volume2 className="w-4 h-4" />
+              ) : (
+                <VolumeX className="w-4 h-4" />
               )
             }
-            className={clsx(
-              'group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all font-mono text-[12px]',
-              /*
-               * When Hindi is active, highlight in green (success color).
-               * Otherwise, use muted text with hover effects.
-               */
-              config.language === 'hindi'
-                ? 'text-success bg-success/5'
-                : 'text-text-muted opacity-40 cursor-not-allowed',
-            )}
-            title="Language (disabled)"
-          >
-            <Languages className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline uppercase font-bold tracking-wider">
-              {config.language === 'english' ? 'en' : 'hi'}
-            </span>
-          </button>
-        </div>
-
-        {/*
-         * Vertical divider separating the left controls from the right actions.
-         */}
-        <div className="w-px h-6 bg-neutral-800 mx-2" />
-
-        {/*
-         * Right-side action buttons
-         *
-         * These are icon-only buttons that perform specific actions:
-         * - History: Opens the history modal showing past test results
-         * - Ghost Mode: Toggles ghost mode (blue highlight when active)
-         * - Sound: Toggles keypress sound on/off
-         */}
-        <div className="flex items-center gap-1 pr-1">
-          {/*
-           * History button
-           * Opens the full history modal showing all past test results.
-           */}
-          <button
-            onClick={() => toggleHistory()}
-            className="p-2 text-text-muted hover:text-brand hover:bg-bg/60 rounded-lg transition-all"
-            title="History"
-          >
-            <History className="w-4 h-4" />
-          </button>
-
-          {/*
-           * Ghost Mode button
-           *
-           * When enabled, a blue semi-transparent cursor races against you,
-           * showing your best previous run's pace.
-           * The button gets a blue highlight when active.
-           */}
-          <button
-            onClick={() => toggleGhostMode()}
-            className={clsx(
-              'p-2 rounded-lg transition-all',
-              /*
-               * Blue highlight when ghost mode is active.
-               * Muted color with hover effects when inactive.
-               */
-              config.ghostMode
-                ? 'text-blue-400 bg-blue-400/5'
-                : 'text-text-muted hover:text-brand hover:bg-bg/60',
-            )}
-            title="Ghost Mode"
-          >
-            <Ghost className="w-4 h-4" />
-          </button>
-
-          {/*
-           * Sound toggle button
-           *
-           * Shows Volume2 icon when sound is enabled,
-           * VolumeX icon (with a cross) when sound is disabled.
-           * Each keystroke produces a synthetic beep using the Web Audio API
-           * (implemented in TypingArea.tsx).
-           */}
-          <button
-            onClick={() => toggleSound()}
-            className="p-2 text-text-muted hover:text-brand hover:bg-bg/60 rounded-lg transition-all"
-            title="Sound"
-          >
-            {config.soundEnabled ? (
-              <Volume2 className="w-4 h-4" />
-            ) : (
-              <VolumeX className="w-4 h-4" />
-            )}
-          </button>
+          />
         </div>
       </div>
+
+      {/* Zone 3 — Live status (appears when typing) */}
+      <div
+        className={clsx(
+          'flex items-center justify-center min-h-6 transition-all duration-500',
+          showLive
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden',
+        )}
+      >
+        <LiveStatus />
+      </div>
+
+      <SettingsMenu
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </header>
+  )
+}
+
+function StreakBadge({
+  count,
+  lastDate,
+}: {
+  count: number
+  lastDate: string | null
+}) {
+  // 60s tick to catch the 10pm hourglass threshold while idle.
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const i = setInterval(() => setTick((t) => t + 1), 60000)
+    return () => clearInterval(i)
+  }, [])
+
+  if (count === 0) return null
+  const todayKey = new Date().toLocaleDateString()
+  const doneToday = lastDate === todayKey
+  const late = new Date().getHours() >= 22
+  const warning = !doneToday && late
+
+  return (
+    <div
+      title={
+        warning ? `Streak ${count} — expires at midnight!` : `Streak ${count}`
+      }
+      className={clsx(
+        'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg font-mono text-xs font-bold transition-all',
+        warning
+          ? 'text-amber-400 bg-amber-400/10 animate-pulse'
+          : 'text-brand bg-brand/10',
+      )}
+    >
+      {warning ? (
+        <Hourglass className="w-4 h-4" />
+      ) : (
+        <Flame className="w-4 h-4" color="orange" />
+      )}
+      <span className="tabular-nums">{count}</span>
+    </div>
+  )
+}
+
+function IconToggle({
+  onClick,
+  title,
+  icon,
+  label,
+  active,
+  activeClass = 'text-brand bg-brand/10',
+  showLabel,
+  disabled,
+}: {
+  onClick: () => void
+  title: string
+  icon?: React.ReactNode
+  label?: React.ReactNode
+  active?: boolean
+  activeClass?: string
+  showLabel?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      disabled={disabled}
+      className={clsx(
+        'inline-flex items-center gap-1.5 h-8 px-2 sm:px-2.5 rounded-lg font-mono text-xs uppercase tracking-wider font-bold transition-all',
+        disabled
+          ? 'opacity-40 cursor-not-allowed'
+          : active
+            ? activeClass
+            : 'text-text-muted hover:text-text hover:bg-bg-secondary/60',
+      )}
+    >
+      {icon}
+      {showLabel && label}
+    </button>
   )
 }

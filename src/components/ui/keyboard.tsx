@@ -63,6 +63,7 @@ export interface KeyboardProps {
   enableHaptics?: boolean
   enableSound?: boolean
   soundUrl?: string
+  language?: string
   onKeyEvent?: (event: KeyboardInteractionEvent) => void
 }
 
@@ -72,6 +73,7 @@ export function Keyboard({
   enableSound = true,
   enableHaptics = true,
   soundUrl = '/sounds/sound.ogg',
+  language = 'english',
   onKeyEvent,
 }: KeyboardProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -83,6 +85,7 @@ export function Keyboard({
       enableSound={enableSound}
       enableHaptics={enableHaptics}
       soundUrl={soundUrl}
+      language={language}
       onKeyEvent={onKeyEvent}
     >
       <div ref={containerRef} className={cn('inline-block', className)}>
@@ -106,6 +109,8 @@ interface KeyboardContextType {
   pressKey: (keyCode: string, source: KeyboardEventSource) => void
   releaseKey: (keyCode: string, source: KeyboardEventSource) => void
   releaseAllKeys: (source?: KeyboardEventSource) => void
+  isHindi: boolean
+  devanagariLabels: Record<string, string>
 }
 
 const KeyboardContext = createContext<KeyboardContextType | null>(null)
@@ -125,6 +130,7 @@ interface KeyboardProviderProps {
   enableSound: boolean
   enableHaptics: boolean
   soundUrl: string
+  language?: string
   onKeyEvent?: (event: KeyboardInteractionEvent) => void
 }
 
@@ -135,6 +141,7 @@ function KeyboardProvider({
   enableSound,
   enableHaptics,
   soundUrl,
+  language = 'english',
   onKeyEvent,
 }: KeyboardProviderProps) {
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -145,6 +152,8 @@ function KeyboardProvider({
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set())
   const [lastPressedKey, setLastPressedKey] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(true)
+  const isHindi = language === 'hindi'
+  const [devanagariLabels, setDevanagariLabels] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!enableSound || !soundUrl) {
@@ -344,6 +353,16 @@ function KeyboardProvider({
         return
       }
       pressKey(event.code, 'physical')
+
+      // Auto-detect Devanagari key mapping when in Hindi mode.
+      // Captures what character the user's IME produces for each physical key
+      // and stores it so the on-screen keyboard can show the Hindi label.
+      if (isHindi && event.key.length === 1 && /^[\u0900-\u097F]$/.test(event.key)) {
+        setDevanagariLabels((prev) => {
+          if (prev[event.code] === event.key) return prev
+          return { ...prev, [event.code]: event.key }
+        })
+      }
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
@@ -357,7 +376,7 @@ function KeyboardProvider({
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [isVisible, pressKey, releaseKey])
+  }, [isVisible, pressKey, releaseKey, isHindi])
 
   return (
     <KeyboardContext.Provider
@@ -369,6 +388,8 @@ function KeyboardProvider({
         pressKey,
         releaseKey,
         releaseAllKeys,
+        isHindi,
+        devanagariLabels,
       }}
     >
       {children}
@@ -383,69 +404,69 @@ function KeyboardProvider({
 function KeyboardLayout() {
   return (
     <div>
-      <div className="bg-black/70 border-2 border-black p-3 rounded-[16px] w-fit h-fit">
-        <div className="bg-black/80 border border-black rounded-[5px] rounded-t-[8px] h-[278px]">
+      <div className="bg-black/70 border-2 border-black p-3 rounded-2xl w-fit h-fit">
+        <div className="bg-black/80 border border-black rounded-[5px] rounded-t-lg h-[278px]">
           <div className="-space-y-1 -translate-y-1 rounded-[5px] overflow-hidden">
             <Row>
               <Key keyCode={KEYCODE.Escape}>{'esc'}</Key>
 
               <Key keyCode={KEYCODE.F1}>
-                <IconBrightnessDown className="size-[10px]" />
+                <IconBrightnessDown className="size-2.5" />
                 <span>{'F1'}</span>
               </Key>
               <Key keyCode={KEYCODE.F2}>
-                <IconBrightnessUp className="size-[10px]" />
+                <IconBrightnessUp className="size-2.5" />
                 <span>{'F2'}</span>
               </Key>
               <Key keyCode={KEYCODE.F3}>
-                <IconLayoutDashboard className="size-[10px]" />
+                <IconLayoutDashboard className="size-2.5" />
                 <span>{'F3'}</span>
               </Key>
               <Key keyCode={KEYCODE.F4}>
-                <IconSearch className="size-[10px]" />
+                <IconSearch className="size-2.5" />
                 <span>{'F4'}</span>
               </Key>
 
               <Key keyCode={KEYCODE.F5}>
-                <IconMicrophone className="size-[10px]" />
+                <IconMicrophone className="size-2.5" />
                 <span>{'F5'}</span>
               </Key>
               <Key keyCode={KEYCODE.F6}>
-                <IconMoon className="size-[10px]" />
+                <IconMoon className="size-2.5" />
                 <span>{'F6'}</span>
               </Key>
               <Key keyCode={KEYCODE.F7}>
-                <IconPlayerTrackPrev className="size-[10px]" />
+                <IconPlayerTrackPrev className="size-2.5" />
                 <span>{'F7'}</span>
               </Key>
               <Key keyCode={KEYCODE.F8}>
-                <IconPlayerSkipForward className="size-[10px]" />
+                <IconPlayerSkipForward className="size-2.5" />
                 <span>{'F8'}</span>
               </Key>
               <Key keyCode={KEYCODE.F9}>
-                <IconPlayerTrackNext className="size-[10px]" />
+                <IconPlayerTrackNext className="size-2.5" />
                 <span>{'F9'}</span>
               </Key>
 
               <Key keyCode={KEYCODE.F10}>
-                <IconVolume3 className="size-[10px]" />
+                <IconVolume3 className="size-2.5" />
                 <span>{'F10'}</span>
               </Key>
               <Key keyCode={KEYCODE.F11}>
-                <IconVolume2 className="size-[10px]" />
+                <IconVolume2 className="size-2.5" />
                 <span>{'F11'}</span>
               </Key>
               <Key keyCode={KEYCODE.F12}>
-                <IconVolume className="size-[10px]" />
+                <IconVolume className="size-2.5" />
                 <span>{'F12'}</span>
               </Key>
 
               <Key keyCode={KEYCODE.F13}>
-                <IconFrame className="size-[10px]" />
+                <IconFrame className="size-2.5" />
               </Key>
               <Key keyCode={KEYCODE.Delete}>{'del'}</Key>
               <Key keyCode={KEYCODE.F14}>
-                <IconBulb className="size-[12px]" />
+                <IconBulb className="size-3" />
               </Key>
             </Row>
 
@@ -507,7 +528,7 @@ function KeyboardLayout() {
               </Key>
 
               <Key keyCode={KEYCODE.Backspace} width={100}>
-                <IconArrowNarrowLeft className="size-[12px]" />
+                <IconArrowNarrowLeft className="size-3" />
               </Key>
               <Key keyCode={KEYCODE.PageUp}>{'pgup'}</Key>
             </Row>
@@ -607,7 +628,7 @@ function KeyboardLayout() {
                 {'shift'}
               </Key>
               <Key keyCode={KEYCODE.ArrowUp}>
-                <IconChevronUp className="size-[12px]" />
+                <IconChevronUp className="size-3" />
               </Key>
               <Key keyCode={KEYCODE.End}>{'end'}</Key>
             </Row>
@@ -620,24 +641,24 @@ function KeyboardLayout() {
                 {'option'}
               </Key>
               <Key keyCode={KEYCODE.MetaLeft} width={62}>
-                <IconCommand className="size-[12px]" />
+                <IconCommand className="size-3" />
               </Key>
 
               <Key keyCode={KEYCODE.Space} width={314} />
 
               <Key keyCode={KEYCODE.MetaRight}>
-                <IconCommand className="size-[12px]" />
+                <IconCommand className="size-3" />
               </Key>
               <Key keyCode={KEYCODE.Fn}>{'fn'}</Key>
               <Key keyCode={KEYCODE.ControlRight}>{'ctrl'}</Key>
               <Key keyCode={KEYCODE.ArrowLeft}>
-                <IconChevronLeft className="size-[12px]" />
+                <IconChevronLeft className="size-3" />
               </Key>
               <Key keyCode={KEYCODE.ArrowDown}>
-                <IconChevronDown className="size-[12px]" />
+                <IconChevronDown className="size-3" />
               </Key>
               <Key keyCode={KEYCODE.ArrowRight}>
-                <IconChevronRight className="size-[12px]" />
+                <IconChevronRight className="size-3" />
               </Key>
             </Row>
           </div>
@@ -659,11 +680,25 @@ interface KeyProps {
 }
 
 function Key({ width = 50, children, className, keyCode }: KeyProps) {
-  const { themeName, pressedKeys, pressKey, releaseKey, triggerPointerHaptic } =
-    useKeyboardContext()
+  const {
+    themeName,
+    pressedKeys,
+    pressKey,
+    releaseKey,
+    triggerPointerHaptic,
+    isHindi,
+    devanagariLabels,
+  } = useKeyboardContext()
   const isPressed = keyCode ? pressedKeys.has(keyCode) : false
   const keyVariantSlot = resolveKeyVariant(themeName, keyCode)
   const keyVariant = KEYBOARD_THEMES[themeName].variants[keyVariantSlot]
+
+  // In Hindi mode, show the learned Devanagari character on letter keys.
+  // The English label remains as a small caption beneath it for reference.
+  const devanagariLabel =
+    isHindi && keyCode?.startsWith('Key') && devanagariLabels[keyCode]
+      ? devanagariLabels[keyCode]
+      : null
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
     if (!keyCode || event.button !== 0 || isPressed) {
@@ -702,7 +737,7 @@ function Key({ width = 50, children, className, keyCode }: KeyProps) {
     >
       <div
         className={cn(
-          'relative overflow-hidden h-[50px] rounded-[4px] rounded-t-[12px] border border-black/40 flex items-start justify-center transition-all duration-100',
+          'relative overflow-hidden h-[50px] rounded-sm rounded-t-xl border border-black/40 flex items-start justify-center transition-all duration-100',
           isPressed && 'h-[45px]',
         )}
         style={{
@@ -712,7 +747,7 @@ function Key({ width = 50, children, className, keyCode }: KeyProps) {
       >
         <div
           className={cn(
-            'relative z-10 h-[37px] rounded-[6px] border border-t-0 border-black/40 transition-all duration-100',
+            'relative z-10 h-[37px] rounded-md border border-t-0 border-black/40 transition-all duration-100',
             'text-[9px] font-medium flex flex-col items-center justify-between p-1 gap-0.5 select-none',
             className,
           )}
@@ -722,7 +757,14 @@ function Key({ width = 50, children, className, keyCode }: KeyProps) {
             color: keyVariant.text,
           }}
         >
-          {children}
+          {devanagariLabel ? (
+            <>
+              <span className="text-[12px] font-bold leading-none">{devanagariLabel}</span>
+              <span className="text-[6px] opacity-60 leading-none">{children}</span>
+            </>
+          ) : (
+            children
+          )}
         </div>
 
         <div

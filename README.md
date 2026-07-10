@@ -43,8 +43,4 @@ The app will be available at `http://localhost:5173`.
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/yourusername/donkey-type/issues).
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/raghavdwd/donkey-type/issues).
