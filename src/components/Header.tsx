@@ -9,6 +9,7 @@ import {
   Ghost,
   Flame,
   Hourglass,
+  Github,
 } from 'lucide-react'
 import clsx from 'clsx'
 import useStore from '../store'
@@ -65,10 +66,20 @@ export default function Header() {
             <span className="text-text">type</span>
           </h1>
         </div>
-
+        
         <div className="flex-1 flex justify-center min-w-0">
           <ModePill />
         </div>
+        
+        <a
+            href="https://github.com/raghavdwd/donkey-type"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-muted hover:text-brand hover:bg-brand/10 transition-colors"
+            title="GitHub"
+          >
+            <Github className="w-4 h-4 sm:w-5 sm:h-5" />
+          </a>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <IconToggle
