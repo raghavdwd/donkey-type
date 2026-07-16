@@ -235,7 +235,7 @@ interface Compute {
  *   - Mode: time (most popular typing test format)
  *   - Language: English (the default)
  *   - Difficulty: Medium (balanced for most users)
- *   - Theme: default (dark with yellow accents)
+ *   - Theme: matcha (warm green tea with off-white background)
  *   - Time: 30 seconds (standard typing test duration)
  *   - Words: 25 (another common test format)
  *   - Case sensitive: off (more forgiving for casual typing)
@@ -248,7 +248,7 @@ const initialState = {
     mode: 'time' as const,
     language: 'english' as const,
     difficulty: 'medium' as const,
-    theme: 'default' as const,
+    theme: 'matcha' as const,
     timeAmount: 30,
     timeUnit: 's' as const,
     wordsAmount: 25,
@@ -266,7 +266,7 @@ const initialState = {
   },
   keyboard: {
     display: true,
-    theme: 'classic' as const,
+    theme: 'dolch' as const,
     enableHaptics: true,
     enableSound: true,
   },
@@ -302,6 +302,14 @@ const useStore = create<State & Mutation & Compute>()(
        */
       ...initialState,
       history: [],
+
+      // Apply the default visual theme to the document on startup so the
+      // correct CSS variables are active before any theme change occurs.
+      ...(document.documentElement.setAttribute(
+        'data-theme',
+        initialState.config.theme,
+      ),
+      {}),
 
       /*
        * changeMode
