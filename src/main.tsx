@@ -1,32 +1,5 @@
-/*
- * main.tsx
- * 
- * This is the entry point of our React application.
- * This is where the whole app starts loading and gets injected into the HTML page.
- * Basically when the browser loads the index.html file, it will see this script
- * and start running everything from here.
- * 
- * We are using React 19 which is the latest version of React at the time of writing.
- * React is a JavaScript library for building user interfaces. It was created by Facebook
- * and is one of the most popular front-end libraries in the world.
- */
 
-/*
- * StrictMode is a wrapper component that React provides to help us catch bugs
- * during development. It does NOT render anything visible on the screen.
- * What it does is it intentionally double-invokes certain lifecycle methods and hooks
- * so that we can catch side effects that we might have forgotten to clean up.
- * This only happens in development mode, not in production.
- */
 import { StrictMode } from 'react'
-
-/*
- * createRoot is the new way to render React apps starting from React 18.
- * Before React 18, we used ReactDOM.render() but now we use createRoot().
- * The reason they changed this is because the new createRoot API gives us
- * access to concurrent features and better performance.
- * We pass the DOM element with id="root" which is defined in index.html.
- */
 import { createRoot } from 'react-dom/client'
 
 /*

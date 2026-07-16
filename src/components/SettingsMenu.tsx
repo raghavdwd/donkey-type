@@ -5,8 +5,6 @@ import { Switch } from './ui/switch'
 
 type Tab = 'test' | 'keyboard'
 
-const TIME_PRESETS = [15, 30, 60, 120] as const
-const WORDS_PRESETS = [10, 25, 50, 100] as const
 
 /*
  * SettingsMenu
@@ -69,7 +67,7 @@ export default function SettingsMenu({
           </TabButton>
         </div>
 
-        {tab === 'test' ? <TestBody onClose={onClose} /> : <KeyboardBody />}
+        {tab === 'test' ? <TestBody /> : <KeyboardBody />}
       </div>
     </div>
   )
@@ -99,32 +97,12 @@ function TabButton({
   )
 }
 
-function TestBody({ onClose }: { onClose: () => void }) {
+function TestBody() {
   const {
     config,
-    changeMode,
-    setTimeAmount,
-    setWordsAmount,
-    setTimeUnit,
-    setWordUnit,
     toggleRealtimeStats,
   } = useStore()
 
-  const [timeStr, setTimeStr] = useState(config.timeAmount.toString())
-  const [wordsStr, setWordsStr] = useState(config.wordsAmount.toString())
-
-  const applyTime = (n: number) => {
-    if (!Number.isFinite(n) || n <= 0) return
-    changeMode('time')
-    setTimeAmount(n)
-    onClose()
-  }
-  const applyWords = (n: number) => {
-    if (!Number.isFinite(n) || n <= 0) return
-    changeMode('words')
-    setWordsAmount(n)
-    onClose()
-  }
 
   return (
     <div className="space-y-5">
@@ -208,46 +186,6 @@ function KeyboardBody() {
   )
 }
 
-function Section({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className="block text-text-muted font-mono text-xs uppercase tracking-wider mb-2">
-        {label}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-function PresetButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        'px-3 py-1.5 rounded-lg font-mono text-sm font-bold transition-all',
-        active
-          ? 'bg-brand text-bg'
-          : 'bg-bg-secondary text-text-muted hover:text-text border border-neutral-800',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
 
 function Row({
   label,
