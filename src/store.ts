@@ -108,6 +108,8 @@ export type ThemeName =
   | 'cyberpunk'
   | 'midnight'
   | 'rose'
+  | 'sunset'
+  | 'gruvbox'
 
 /*
  * State interface

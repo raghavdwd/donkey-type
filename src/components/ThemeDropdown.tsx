@@ -30,6 +30,8 @@ const THEME_PREVIEW: Record<
   cyberpunk: { bg: '#000b18', accent: '#fcee0a', name: 'cyberpunk' },
   midnight: { bg: '#0f172a', accent: '#a78bfa', name: 'midnight' },
   rose: { bg: '#1a0f14', accent: '#f472b6', name: 'rose' },
+  sunset: { bg: '#211a1d', accent: '#f07c68', name: 'sunset' },
+  gruvbox: { bg: '#282828', accent: '#fe8019', name: 'gruvbox' },
 }
 
 export default function ThemeDropdown() {
