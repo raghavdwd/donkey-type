@@ -186,6 +186,38 @@
 }
 
 /*
+ * THEME: Sunset
+ *
+ * A warm, dark theme built around charcoal, coral, and soft gold accents.
+ */
+[data-theme="sunset"] {
+  --brand: #f07c68;
+  --brand-light: #ffab8e;
+  --bg: #211a1d;
+  --bg-secondary: #302326;
+  --text: #f8e9df;
+  --text-muted: #bfa9a1;
+  --error: #ff6b6b;
+  --success: #f2c96d;
+}
+
+/*
+ * THEME: Gruvbox
+ *
+ * A warm, high-contrast dark theme inspired by the classic Gruvbox palette.
+ */
+[data-theme="gruvbox"] {
+  --brand: #fe8019;
+  --brand-light: #fabd2f;
+  --bg: #282828;
+  --bg-secondary: #3c3836;
+  --text: #ebdbb2;
+  --text-muted: #a89984;
+  --error: #fb4934;
+  --success: #b8bb26;
+}
+
+/*
  * @theme block (Tailwind CSS v4 custom theme configuration)
  * 
  * This is where we connect our CSS custom properties (variables) to Tailwind's
