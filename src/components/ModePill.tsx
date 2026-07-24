@@ -2,32 +2,31 @@ import { useState } from 'react'
 import { Timer, Type, Sparkles, ChevronDown } from 'lucide-react'
 import clsx from 'clsx'
 import useStore from '../store'
-import TimeWordsConfigModal from './TimeWordsConfigModal'
+import ConfigModal from './ConfigModal'
 
-/*
- * ModePill
- *
- * The visual anchor of the new header. Shows the active test config at a
- * glance (e.g. "time · 30s", "words · 25", "zen") and opens the time/words
- * configuration modal on click.
- *
- * Replaces the standalone "Configure Time/Words" button from the old header.
- * The mode icon + label are the loudest thing in the top bar, making it
- * impossible to forget what test you're running.
- */
 export default function ModePill() {
   const { config } = useStore()
   const [isOpen, setIsOpen] = useState(false)
 
   const Icon =
-    config.mode === 'time' ? Timer : config.mode === 'words' ? Type : Sparkles
+    config.mode === 'time'
+      ? Timer
+      : config.mode === 'words'
+        ? Type
+        : Sparkles
 
   const label =
     config.mode === 'time'
       ? `${config.timeAmount}${config.timeUnit}`
       : config.mode === 'words'
         ? `${config.wordsAmount} ${config.wordUnit === 'words' ? 'w' : 'c'}`
-        : 'zen'
+        : config.mode === 'punctuation'
+          ? config.punctuationDensity === 'easy'
+            ? 'easy (.)'
+            : config.punctuationDensity === 'medium'
+              ? 'med (.,!?;:)'
+              : 'hard (all)'
+          : 'zen'
 
   return (
     <>
@@ -49,7 +48,7 @@ export default function ModePill() {
         <span className="text-text font-semibold tracking-wide">{label}</span>
         <ChevronDown className="w-3 h-3 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
-      <TimeWordsConfigModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <ConfigModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   )
 }

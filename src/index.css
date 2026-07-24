@@ -202,10 +202,29 @@
 }
 
 /*
- * THEME: Gruvbox
- *
- * A warm, high-contrast dark theme inspired by the classic Gruvbox palette.
- */
+  * THEME: Light
+  *
+  * A warm-toned light theme with a saffron/orange-yellow accent —
+  * distinct from the earthy green of matcha and matcha-fresh.
+  * Clean warm off-white background with dark charcoal text for
+  * comfortable long typing sessions.
+  */
+[data-theme="light"] {
+  --brand: #f97316;
+  --brand-light: #fed7aa;
+  --bg: #faf6f1;
+  --bg-secondary: #f0e6db;
+  --text: #2d2d2d;
+  --text-muted: #78716c;
+  --error: #ef4444;
+  --success: #10b981;
+}
+
+/*
+  * THEME: Gruvbox
+  *
+  * A warm, high-contrast dark theme inspired by the classic Gruvbox palette.
+  */
 [data-theme="gruvbox"] {
   --brand: #fe8019;
   --brand-light: #fabd2f;

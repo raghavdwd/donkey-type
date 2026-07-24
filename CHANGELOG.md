@@ -1,5 +1,6 @@
 ## RECENT CHANGES
 
+2026-07-24 — feat: add light theme (warm off-white bg, saffron accent)
 2026-07-09 — feat: per-day streak (dedicated persisted slice, header Flame badge + hourglass warning post-10pm, streak + longest cards in history)
 2026-07-09 — feat: HistoryModal additions (raw wpm line, accuracy line dual-axis, raw-wpm/tests-done/consistency stat cards)
 2026-07-08 — feat: header theme dropdown — hover preview (reverts on leave/close)

@@ -6,6 +6,7 @@ import HistoryModal from './components/HistoryModal'
 import useStore from './store'
 import { getRandomWords, onWordsLoaded } from './lib/word-list'
 import { getHindiText } from './lib/hindi-text'
+import { getPunctuationText } from './lib/punctuation-text'
 import {
   Keyboard,
   type KeyboardInteractionEvent,
@@ -25,7 +26,6 @@ function App() {
     isHistoryOpen,
     getBestGhostRun,
   } = useStore()
-  console.log('keyboard:', keyboard)
   const timerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -33,18 +33,19 @@ function App() {
   }, [config.theme])
 
   const initGame = useCallback(async () => {
-    // Time mode needs a bigger buffer than the visible target so the text never runs out mid-test.
-    let generateWordCount = 200 // Default buffer for time mode
-    if (config.mode === 'words') {
+    let generateWordCount = 200
+    if (config.mode === 'words' || config.mode === 'punctuation') {
       if (config.wordUnit === 'words') {
         generateWordCount = config.wordsAmount
       } else {
-        // If they chose 'chars', we guess how many words that is (~5 chars per word)
         generateWordCount = Math.ceil(config.wordsAmount / 5) + 5
       }
     }
 
-    if (config.ghostMode) {
+    if (config.mode === 'punctuation') {
+      const text = await getPunctuationText(config.punctuationDensity)
+      setCurrentText(text)
+    } else if (config.ghostMode) {
       const bestRun = getBestGhostRun()
       if (bestRun && bestRun.textUsed) {
         setCurrentText(bestRun.textUsed)
@@ -86,6 +87,8 @@ function App() {
     config.timeUnit,
     config.wordsAmount,
     config.wordUnit,
+    config.punctuationDensity,
+    config.punctuationEndMode,
     reset,
     setCurrentText,
     getBestGhostRun,
@@ -105,6 +108,8 @@ function App() {
     config.timeUnit,
     config.wordsAmount,
     config.wordUnit,
+    config.punctuationDensity,
+    config.punctuationEndMode,
   ])
 
   useEffect(() => {
@@ -128,8 +133,12 @@ function App() {
       // The timer ticks once per second and owns the countdown for time mode.
       timerRef.current = window.setInterval(() => {
         useStore.setState((state) => {
-          // Time mode logic
-          if (state.config.mode === 'time') {
+          const shouldTimeOut =
+            state.config.mode === 'time' ||
+            (state.config.mode === 'punctuation' &&
+              state.config.punctuationEndMode === 'time')
+
+          if (shouldTimeOut) {
             const multiplier =
               state.config.timeUnit === 'h'
                 ? 3600
@@ -139,7 +148,6 @@ function App() {
             const targetSeconds = state.config.timeAmount * multiplier
 
             if (state.stats.secElapsed >= targetSeconds) {
-              // Defer the finish call so the state update above settles cleanly first.
               setTimeout(() => {
                 finishTest()
               }, 0)
@@ -154,10 +162,14 @@ function App() {
     }
   }, [isTyping, isFinished, finishTest, isHistoryOpen])
 
-  // Subscribes to typing progress to end 'words' or 'chars' mode early if needed
+  // Subscribes to typing progress to end word/char-based modes early
   useEffect(() => {
-    if (isTyping && config.mode === 'words') {
-      // In words mode, either the word quota or the character quota can end the test first.
+    if (!isTyping) return
+
+    if (
+      (config.mode === 'words') ||
+      (config.mode === 'punctuation' && config.punctuationEndMode === 'words')
+    ) {
       if (
         config.wordUnit === 'chars' &&
         stats.typedCharCount >= config.wordsAmount
@@ -177,6 +189,7 @@ function App() {
     config.mode,
     config.wordUnit,
     config.wordsAmount,
+    config.punctuationEndMode,
     finishTest,
   ])
 

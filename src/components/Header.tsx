@@ -19,21 +19,7 @@ import LiveStatus from './LiveStatus'
 import SettingsMenu from './SettingsMenu'
 import ThemeDropdown from './ThemeDropdown'
 
-/*
- * Header
- *
- * New layout: 2 zones stacked in a single column.
- *
- *   Zone 1 — Top bar (always visible when not typing)
- *     [logo]  [mode pill]  [language] [settings]
- *
- *   Zone 2 — Mode strip (fades out as user starts typing)
- *     [difficulty] · · · [ghost] [sound] [history]
- *
- * The live WPM/acc/time-left readout slides into the top bar (replacing the
- * mode pill) once typing starts, so the chrome stays present-but-quiet
- * instead of going fully empty.
- */
+/* Top bar, mode strip, and live status — fades as user starts typing. */
 export default function Header() {
   const {
     config,
@@ -125,7 +111,8 @@ export default function Header() {
             onClick={() => toggleGhostMode()}
             active={config.ghostMode}
             activeClass="text-blue-400 bg-blue-400/10"
-            title="Ghost Mode"
+            title={config.mode === 'punctuation' ? 'Ghost mode not available in punctuation mode' : 'Ghost Mode'}
+            disabled={config.mode === 'punctuation'}
             icon={<Ghost className="w-4 h-4" />}
           />
           <IconToggle
@@ -169,7 +156,7 @@ function StreakBadge({
   count: number
   lastDate: string | null
 }) {
-  // 60s tick to catch the 10pm hourglass threshold while idle.
+  // Re-render every 60s so the 10pm hourglass shows while idle.
   const [, setTick] = useState(0)
   useEffect(() => {
     const i = setInterval(() => setTick((t) => t + 1), 60000)

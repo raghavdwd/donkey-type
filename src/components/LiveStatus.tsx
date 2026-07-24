@@ -1,13 +1,6 @@
 import useStore from '../store'
 
-/*
- * LiveStatus
- *
- * Replaces the absolute WPM/time div that lived in App.tsx. Shows during
- * an active test if showRealtimeStats is on. Lives inside the header so
- * the "you're typing" state reads as part of the chrome, not a floating
- * overlay above the typing area.
- */
+/* Live WPM/acc/time-left readout shown inside the header during an active test. */
 export default function LiveStatus() {
   const { config, stats, calcWPM, calcAccuracy } = useStore()
 
@@ -23,12 +16,15 @@ export default function LiveStatus() {
       <Stat label="wpm" value={calcWPM()} accent />
       <Divider />
       <Stat label="acc" value={`${accuracy}%`} />
-      {config.mode === 'time' && stats.secElapsed > 0 && (
-        <>
-          <Divider />
-          <Stat label="left" value={getTimeLeft(config, stats.secElapsed)} />
-        </>
-      )}
+      {(config.mode === 'time' ||
+        (config.mode === 'punctuation' &&
+          config.punctuationEndMode === 'time')) &&
+        stats.secElapsed > 0 && (
+          <>
+            <Divider />
+            <Stat label="left" value={getTimeLeft(config, stats.secElapsed)} />
+          </>
+        )}
     </div>
   )
 }
@@ -63,10 +59,14 @@ function getTimeLeft(
     timeAmount: number
     timeUnit: 's' | 'm' | 'h'
     mode: string
+    punctuationEndMode?: 'time' | 'words'
   },
   secElapsed: number,
 ) {
-  if (config.mode !== 'time') return ''
+  const isTime =
+    config.mode === 'time' ||
+    (config.mode === 'punctuation' && config.punctuationEndMode === 'time')
+  if (!isTime) return ''
   const multiplier =
     config.timeUnit === 'h' ? 3600 : config.timeUnit === 'm' ? 60 : 1
   const target = config.timeAmount * multiplier

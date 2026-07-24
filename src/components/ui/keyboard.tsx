@@ -155,19 +155,30 @@ function KeyboardProvider({
   const isHindi = language === 'hindi'
   const [devanagariLabels, setDevanagariLabels] = useState<Record<string, string>>({})
 
+  // Create the AudioContext eagerly on mount so the first gesture does not
+  // pay the context-creation + resume cost.  The sound file is fetched and
+  // decoded in the background, and until it lands the playSound call is a
+  // silent no-op rather than a stalled audio pipeline.
   useEffect(() => {
     if (!enableSound || !soundUrl) {
       audioBufferRef.current = null
       return
     }
 
+    const audioContext = new AudioContext({ latencyHint: 'interactive' })
+    audioContextRef.current = audioContext
+
+    // Unblock the context as early as possible — no need to defer this to
+    // the first user gesture because the browser will keep it suspended
+    // until a real gesture anyway.
+    if (audioContext.state === 'suspended') {
+      void audioContext.resume()
+    }
+
     let cancelled = false
 
-    const initAudio = async () => {
+    const loadBuffer = async () => {
       try {
-        const audioContext = new AudioContext()
-        audioContextRef.current = audioContext
-
         const response = await fetch(soundUrl)
         if (!response.ok) {
           return
@@ -184,15 +195,13 @@ function KeyboardProvider({
       }
     }
 
-    void initAudio()
+    void loadBuffer()
 
     return () => {
       cancelled = true
       audioBufferRef.current = null
-
-      const context = audioContextRef.current
       audioContextRef.current = null
-      void context?.close()
+      void audioContext.close()
     }
   }, [enableSound, soundUrl])
 
@@ -225,7 +234,12 @@ function KeyboardProvider({
       const source = audioContext.createBufferSource()
       source.buffer = audioBuffer
       source.connect(audioContext.destination)
-      source.start(0, startMs / 1000, durationMs / 1000)
+
+      // Schedule the sound immediately.  Browsers automatically account for
+      // internal buffering and output latency; trying to "compensate" with
+      // outputLatency − baseLatency actually pushes the sound further into
+      // the future and worsens perceived latency.
+      source.start(audioContext.currentTime, startMs / 1000, durationMs / 1000)
     },
     [enableSound],
   )

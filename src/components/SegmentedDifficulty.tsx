@@ -4,19 +4,10 @@ import useStore from '../store'
 const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 type Difficulty = (typeof DIFFICULTIES)[number]
 
-/*
- * SegmentedDifficulty
- *
- * Replaces the old cycling icon button (Gauge + label). Three connected
- * pill segments, one active. One click to read, one click to pick.
- *
- * Disabled in Hindi mode (sentences don't have difficulty levels), matching
- * the previous behavior. The full pill greys out instead of the segments
- * staying clickable.
- */
+/* Three-segment radio group (easy / med / hard). Disabled in Hindi or punctuation mode. */
 export default function SegmentedDifficulty() {
   const { config, changeDifficulty } = useStore()
-  const disabled = config.language === 'hindi'
+  const disabled = config.language === 'hindi' || config.mode === 'punctuation'
 
   return (
     <div
@@ -28,7 +19,7 @@ export default function SegmentedDifficulty() {
         'bg-bg-secondary/60 border border-neutral-800/60',
         disabled && 'opacity-40',
       )}
-      title={disabled ? 'Difficulty disabled in Hindi mode' : 'Difficulty'}
+      title={disabled ? (config.mode === 'punctuation' ? 'Controlled by punctuation mode' : 'Difficulty disabled in Hindi mode') : 'Difficulty'}
     >
       {DIFFICULTIES.map((d: Difficulty) => {
         const active = config.difficulty === d

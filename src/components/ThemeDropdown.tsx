@@ -27,6 +27,7 @@ const THEME_PREVIEW: Record<
     accent: '#22c55e',
     name: 'matcha-fresh',
   },
+  light: { bg: '#faf6f1', accent: '#f97316', name: 'light' },
   cyberpunk: { bg: '#000b18', accent: '#fcee0a', name: 'cyberpunk' },
   midnight: { bg: '#0f172a', accent: '#a78bfa', name: 'midnight' },
   rose: { bg: '#1a0f14', accent: '#f472b6', name: 'rose' },

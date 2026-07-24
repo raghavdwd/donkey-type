@@ -1,15 +1,8 @@
-/**
- * hindi-text.ts
+/*
+ * Hindi sentences/paragraphs for typing practice.
  *
- * Provides Hindi sentences/paragraphs for typing practice.
- *
- * Strategy:
- * 1. Try fetching a random Hindi Wikipedia article summary via API
- * 2. If that fails (offline/rate-limited), fall back to a static corpus
- *
- * Wikipedia API returns clean plain text via `explaintext=true`,
- * which is ideal for typing practice — real Hindi prose with
- * proper punctuation and spacing.
+ * Strategy: try fetching a random Hindi Wikipedia article summary via API,
+ * fall back to a static corpus if the request fails.
  */
 
 const WIKIPEDIA_API =
@@ -17,9 +10,6 @@ const WIKIPEDIA_API =
   '&generator=random&grnnamespace=0&grnlimit=3' +
   '&prop=extracts&exintro=true&explaintext=true' +
   '&format=json&origin=*'
-
-// ── Static fallback corpus ───────────────────────────────────────────────
-// Used when the Wikipedia fetch fails or the user is offline.
 
 const FALLBACK_PARAGRAPHS: string[] = [
   `भारत एक महान देश है। यहाँ विभिन्न संस्कृतियों और भाषाओं के लोग रहते हैं। भारत का इतिहास बहुत पुराना है। यह देश अपनी विविधता में एकता के लिए जाना जाता है। यहाँ अनेक त्योहार मनाए जाते हैं। दीवाली, होली, दशहरा और ईद जैसे त्योहार सभी लोग मिलकर मनाते हैं। भारत की राजधानी दिल्ली है और यहाँ की मुद्रा रुपया है। गंगा नदी को भारत की सबसे पवित्र नदी माना जाता है। ताजमहल विश्व के सात अजूबों में से एक है। भारतीय संस्कृति अपनी मेहमाननवाजी के लिए प्रसिद्ध है। यहाँ के लोग मेहमान को भगवान का रूप मानते हैं। भारत में अनेक भाषाएं बोली जाती हैं जिनमें हिंदी सबसे अधिक बोली जाने वाली भाषा है।`,
@@ -41,6 +31,12 @@ const FALLBACK_PARAGRAPHS: string[] = [
   `सपने देखना अच्छी बात है लेकिन उन्हें पूरा करने के लिए कड़ी मेहनत भी जरूरी है। सफलता पाने के लिए धैर्य और लगन की आवश्यकता होती है। बड़े-बड़े वैज्ञानिकों और आविष्कारकों ने कड़ी मेहनत से ही सफलता पाई है। असफलता से घबराना नहीं चाहिए बल्कि उससे सीख लेनी चाहिए। असफलता ही सफलता की सीढ़ी है। हर गलती हमें कुछ न कुछ सिखाती है। जो व्यक्ति कड़ी मेहनत करता है वह एक दिन जरूर सफल होता है। इसलिए हमेशा आगे बढ़ने का प्रयास करते रहना चाहिए और कभी हार नहीं माननी चाहिए।`,
 
   `दोस्ती एक अनमोल रिश्ता है। सच्चा दोस्त हर मुश्किल घड़ी में काम आता है। दोस्ती में विश्वास और ईमानदारी का बहुत महत्व है। अच्छे दोस्त हमारे जीवन को खुशहाल बनाते हैं। हम अपने दोस्तों के साथ अपनी खुशियाँ और दुख बांटते हैं। दोस्त ही हैं जो हमें मुश्किल समय में संभालते हैं और सही रास्ता दिखाते हैं। सच्ची दोस्ती कभी पुरानी नहीं होती बल्कि समय के साथ और मजबूत होती जाती है। इसलिए अच्छे दोस्त बनाने चाहिए और उनकी कद्र करनी चाहिए। जीवन में सच्चे दोस्तों का होना बहुत बड़ा सौभाग्य है।`,
+
+  `योग एक प्राचीन भारतीय अभ्यास है जो शरीर और मन को स्वस्थ रखता है। योग से शरीर लचीला बनता है और मन शांत रहता है। प्राणायाम और ध्यान योग के महत्वपूर्ण अंग हैं। नियमित योगाभ्यास से कई बीमारियों से बचा जा सकता है। योग केवल शारीरिक व्यायाम नहीं है बल्कि यह जीवन जीने की एक कला है। आज पूरी दुनिया में योग की लोकप्रियता बढ़ रही है। योग दिवस २१ जून को मनाया जाता है। योग हमें तनाव से दूर रखता है और हमारी एकाग्रता बढ़ाता है। हर किसी को अपने दिनचर्या में योग को शामिल करना चाहिए।`,
+
+  `जल ही जीवन है। पानी के बिना मनुष्य का अस्तित्व संभव नहीं है। हमें पानी की हर बूंद को बचाना चाहिए। बढ़ता जल संकट पूरी दुनिया के लिए चिंता का विषय है। वर्षा जल संचयन जल संरक्षण का एक प्रभावी तरीका है। नदियों और झीलों को प्रदूषित होने से बचाना चाहिए। भूजल स्तर लगातार गिर रहा है जो एक गंभीर समस्या है। हमें पानी का सदुपयोग करना चाहिए और व्यर्थ नहीं बहाना चाहिए। जल संरक्षण हर नागरिक का कर्तव्य है। अगर हम अभी नहीं चेते तो आने वाली पीढ़ियों को पानी के लिए तरसना पड़ेगा।`,
+
+  `चिड़ियाँ अपने घोंसले बनाती हैं और अपने बच्चों की देखभाल करती हैं। पेड़ों पर अनेक प्रकार के पक्षी रहते हैं। सुबह-सुबह पक्षियों की चहचहाहट बहुत सुहावनी लगती है। पक्षी हमारे पर्यावरण के महत्वपूर्ण अंग हैं। वे कीटों को नियंत्रित करते हैं और बीजों के प्रसार में मदद करते हैं। पक्षियों की अनेक प्रजातियाँ आज विलुप्त होने के कगार पर हैं। हमें पक्षियों के संरक्षण के लिए प्रयास करने चाहिए। उनके लिए पानी और दाना रखना एक अच्छी आदत है। पक्षियों को देखना और उनकी आवाज़ सुनना मन को सुकून देता है। हमें प्रकृति के इन अनमोल उपहारों की रक्षा करनी चाहिए।`,
 ]
 
 const FALLBACK_SENTENCES: string[] = [
@@ -76,8 +72,6 @@ const FALLBACK_SENTENCES: string[] = [
   'संयम और अनुशासन सफलता की कुंजी है।',
 ]
 
-// ── Wikipedia API ────────────────────────────────────────────────────────
-
 async function fetchFromWikipedia(): Promise<string[]> {
   try {
     const response = await fetch(WIKIPEDIA_API)
@@ -99,18 +93,12 @@ async function fetchFromWikipedia(): Promise<string[]> {
   }
 }
 
-// ── Text processing ──────────────────────────────────────────────────────
-
-/**
- * Splits text into sentences and builds paragraphs up to a target length.
- * Filters out unwanted content like section headers, URLs, and markup.
- */
+/** Splits text into lines, filtering out section headers, URLs, and markup. */
 function cleanAndChunk(text: string): string[] {
   return text
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => {
-      // Skip empty lines, section headers, URLs
       if (!line) return false
       if (line.startsWith('=')) return false
       if (line.startsWith('http')) return false
@@ -119,73 +107,42 @@ function cleanAndChunk(text: string): string[] {
       if (line.startsWith('*')) return false
       if (line.startsWith(';')) return false
       if (line.startsWith(':')) return false
-      // Must have at least 3 Devanagari characters to be useful
       const devanagari = line.match(/[\u0900-\u097F]/g)
       return devanagari && devanagari.length >= 3
     })
 }
 
-/**
- * Picks a random paragraph from the static fallback corpus.
- */
 function pickRandomFallback(): string {
   const idx = Math.floor(Math.random() * FALLBACK_PARAGRAPHS.length)
   return FALLBACK_PARAGRAPHS[idx]
 }
 
-/**
- * Builds a typing text from Wikipedia extracts.
- * Combines multiple short extracts, or returns the full first one.
- */
 function buildTextFromExtracts(extracts: string[]): string | null {
   if (extracts.length === 0) return null
-
-  // Use all extracts combined
   const cleaned = extracts.flatMap(cleanAndChunk)
   if (cleaned.length === 0) return null
-
-  // Join with double newline for paragraph breaks
   return cleaned.join('\n\n')
 }
 
-/**
- * Picks a random short sentence from the single-sentence fallback list.
- * These are short enough for a quick test or for word-mode practice.
- */
 function pickRandomSentence(): string {
   const idx = Math.floor(Math.random() * FALLBACK_SENTENCES.length)
   return FALLBACK_SENTENCES[idx]
 }
-
-// ── Caching ──────────────────────────────────────────────────────────────
-// Keep a cached text so the user doesn't hit the API every time they restart.
-// Refreshes after 5 minutes.
 
 let cachedText: string | null = null
 let lastFetchTime = 0
 const CACHE_TTL_MS = 5 * 60 * 1000
 
 /**
- * getHindiText
- *
- * Main entry point. Returns a paragraph of Hindi text for typing practice.
- *
- * Strategy:
- * 1. Use cached text if fresh (< 5 min old)
- * 2. Try fetching from Wikipedia API
- * 3. Fall back to static corpus
- *
- * @param minLength - Minimum number of characters desired (default: 200)
- * @returns A Hindi text string
+ * Returns a paragraph of Hindi text for typing practice.
+ * Uses a 5-min cache to avoid hitting Wikipedia on every restart.
  */
 export async function getHindiText(minLength = 200): Promise<string> {
-  // 1. Check cache
   const now = Date.now()
   if (cachedText && now - lastFetchTime < CACHE_TTL_MS && cachedText.length >= minLength) {
     return cachedText
   }
 
-  // 2. Try Wikipedia
   const extracts = await fetchFromWikipedia()
   const wikiText = extracts.length > 0 ? buildTextFromExtracts(extracts) : null
 
@@ -195,12 +152,9 @@ export async function getHindiText(minLength = 200): Promise<string> {
     return wikiText
   }
 
-  // 3. Fallback — use static corpus, maybe combine with sentences
   const paragraph = pickRandomFallback()
-  // If the paragraph is too short, pad with a sentence
   const result = paragraph.length >= minLength ? paragraph : paragraph + ' ' + pickRandomSentence()
 
-  // Still cache it (don't spam Wikipedia on every restart)
   if (!cachedText) {
     cachedText = result
     lastFetchTime = now
@@ -210,14 +164,7 @@ export async function getHindiText(minLength = 200): Promise<string> {
 }
 
 /**
- * getHindiSentences
- *
- * Returns an array of individual Hindi sentences (for word-mode style testing
- * where each "word" is actually a full sentence, though the app treats them
- * as continuous text).
- *
- * @param count - Number of sentences desired
- * @returns Array of Hindi sentences
+ * Returns shuffled Hindi sentences (for word-mode style testing).
  */
 export function getHindiSentences(count: number): string[] {
   const shuffled = [...FALLBACK_SENTENCES].sort(() => Math.random() - 0.5)
